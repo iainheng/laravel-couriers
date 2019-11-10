@@ -6,7 +6,7 @@ use Nextbyte\Courier\Messages\RedirectResponseInterface;
 
 class PosLajuTrackingResponse extends AbstractTrackingResponse implements RedirectResponseInterface
 {
-    protected $endpoint = 'http://track.pos.com.my/postal-services/quick-access/?track-trace';
+    protected $endpoint = 'https://track.pos.com.my/postal-services/quick-access/?track-trace';
 
     public function getRedirectMethod()
     {

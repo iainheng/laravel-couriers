@@ -43,7 +43,7 @@ class PosLaju
     {
         $response = $this->client->request(
             'POST',
-            "http://{$this->endpoint}/postal-services/quick-access/?track-trace",
+            "https://{$this->endpoint}/postal-services/quick-access/?track-trace",
             array_merge([
                 'form_params' => [
                     'trackingNo03' => $trackingNumber,
