@@ -93,17 +93,36 @@ class NationwideExpressDriver extends Driver
             $attributes['updatedAt'] = $this->parseDatetimeString($latestShipment->update_dt_tm);
             $attributes['statusCode'] = $latestShipment->status_code;
             $attributes['description'] = $this->client->getStatus($latestShipment->status_code);
-            $attributes['status'] = $this->getConsignmentStatus($latestShipment->status_code);
+            $attributes['status'] = $this->getConsignmentStatus($shipments);
         }
 
         return Consignment::create($attributes);
     }
 
     /**
+     * @param array $shipments
+     * @return string
+     */
+    protected function getConsignmentStatus(array $shipments)
+    {
+        $shipments = array_reverse($shipments);
+
+        foreach ($shipments as $shipment) {
+            $status = $this->getStatusName($shipment->status_code);
+
+            if (in_array($status, [ConsignmentStatus::Delivered, ConsignmentStatus::Cancelled, ConsignmentStatus::Returned])) {
+                return $status;
+            }
+        }
+
+        return ConsignmentStatus::Delivering;
+    }
+
+    /**
      * @param $statusCode
      * @return string
      */
-    protected function getConsignmentStatus($statusCode)
+    protected function getStatusName($statusCode)
     {
         $status = ConsignmentStatus::Delivering;
 
