@@ -1,5 +1,5 @@
 <?php
-namespace Nextbyte\Courier\Drivers\NationwideExpress;
+namespace Nextbyte\Courier\Drivers\Null;
 
 use Nextbyte\Courier\Messages\AbstractTrackingResponse;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
