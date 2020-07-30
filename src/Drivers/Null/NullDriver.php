@@ -2,8 +2,9 @@
 
 namespace Nextbyte\Courier\Drivers\Null;
 
+use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\Drivers\Driver;
-use Nextbyte\Courier\Drivers\NationwideExpress\NullTrackingResponse;
+use Nextbyte\Courier\Enums\ConsignmentStatus;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
 
 class NullDriver extends Driver
@@ -13,8 +14,24 @@ class NullDriver extends Driver
      *
      * @return RedirectResponseInterface
      */
-    public function redirectTrack()
+    public function redirectTrack($trackingNumbers)
     {
         return new NullTrackingResponse([]);
+    }
+
+    public function consignment($trackingNumber)
+    {
+        $attributes = [
+            'number' => $trackingNumber,
+            'weight' => 0,
+            'origin' => '',
+            'destination' => '',
+            'shipments' => collect(),
+            'rawShipments' => [],
+            'status' => ConsignmentStatus::Delivering,
+            'description' => 'Delivering'
+        ];
+
+        return Consignment::create($attributes);
     }
 }
