@@ -5,7 +5,10 @@ namespace Nextbyte\Courier;
 use Illuminate\Support\Manager;
 use Nextbyte\Courier\Clients\NationwideExpress\NationwideExpress;
 use Nextbyte\Courier\Clients\PosLaju\PosLaju;
+use Nextbyte\Courier\Drivers\Best\BestDriver;
+use Nextbyte\Courier\Drivers\Dhl\DhlDriver;
 use Nextbyte\Courier\Drivers\NationwideExpress\NationwideExpressDriver;
+use Nextbyte\Courier\Drivers\Ninjavan\NinjavanDriver;
 use Nextbyte\Courier\Drivers\Null\NullDriver;
 use Nextbyte\Courier\Drivers\PosLaju\PosLajuDriver;
 
@@ -77,7 +80,6 @@ class CourierManager extends Manager
         return new PosLaju();
     }
 
-
     /**
      * Create a Null Courier driver instance.
      *
@@ -86,6 +88,36 @@ class CourierManager extends Manager
     public function createNullDriver()
     {
         return new NullDriver;
+    }
+
+    /**
+     * Create a Best Courier driver instance.
+     *
+     * @return \Nextbyte\Courier\Drivers\Best\BestDriver
+     */
+    public function createBestDriver()
+    {
+        return new BestDriver();
+    }
+
+    /**
+     * Create a Dhl Courier driver instance.
+     *
+     * @return \Nextbyte\Courier\Drivers\Dhl\DhlDriver
+     */
+    public function createDhlDriver()
+    {
+        return new DhlDriver();
+    }
+
+    /**
+     * Create a Ninjavan Courier driver instance.
+     *
+     * @return \Nextbyte\Courier\Drivers\Ninjavan\NinjavanDriver
+     */
+    public function createNinjavanDriver()
+    {
+        return new NinjavanDriver();
     }
 
     /**
