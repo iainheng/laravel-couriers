@@ -1,0 +1,85 @@
+CN Status,Descriptions
+ACK,Acknowledge Cancellation
+CAN,Cancelled
+CKI,Arrived at Station
+CKL,Linehaul Check In
+CKO,Departed from Station
+CSU,Updated By Customer Service
+DNE,Pickup Done
+FUP,Pickup Follow up
+MNF,Manifested
+MPE,MPS Exception Correction
+NEW,New Pickup
+POD,Shipment Delivered
+RDO,Return Delivery Order
+RRT,Rerouted
+TRC,Trace Created / Processing Claim
+TRS,Transmitted
+X01,Package Not Delivered / Not Attempted
+X02,Incorrect Address
+X03,Delivered To Another Address
+X04,Unable To Locate Consignee Address
+X05,Shipment Refused By Recipient
+X06,Business Closed On Delivery Attempt
+X06,Business Closed On Pickup Attempt
+X07,Damaged-Delivery Completed
+X08,Damaged-Delivery Not Complete
+X09,COD-Cash On Delivery
+X10,Package Sorted To Wrong Route
+X11,Shipment Returned To Sender
+X14,Customer Requested A Future Pickup / Delivery
+X16,Commodity Unacceptable / DG
+X17,Bulk Truck / Flight
+X18,Package Missed Truck / Plane
+X19,Received After Cut off time
+X20,Consignee Unavailable - Delivery Delayed
+X21,Package Received Without Package Tracking No.
+X22,Re-route Requested
+X23,Pickup Attempted After Closed Time
+X24,Arrived After Courier is Dispatched
+X25,Truck / Plane Arrived Late
+X26,Vendor Transportation Delay
+X27,Destroyed By Customer Request
+X28,Third Party Call In - No Package / No pickup
+X29,Holding in Overloads
+X30,Damaged - Rewrapped in HUB
+X31,CN No. Received without Package
+X32,Customer Did Not Wait
+X33,Package Not Due / Not Attempted
+X34,Holiday - Business Closed
+X35,Pickup Exception - No Package
+X37,ODA - Outside Delivery Area
+X38,Improper Paperwork / No Invoice
+X39,Held - Package  Cleared After Sort Dow
+X40,Package is Part Of Incomplete MPS
+X41,Regulatory Agency Clearance Delayed
+X42,Package Manifested But Not Received
+X43,Unable To Contact Consignee - Broker Info
+X44,Delivery Exception - P.M. Exception
+X45,Shipment Held For Recipient Pickup
+X46,In Bond Cage
+X47,Package Held For Duties & Tax
+X48,Customs Release
+X49,Released To / From & Agent
+X50,Shipment In Transit
+X51,Commercial / Dutiable Package received
+X52,Doc / Non Commercial Package received
+X53,Requires Add Regulatory Process
+X54,Overage
+X55,NECSB Brokers Customs Entry
+X56,International Transit Out
+X57,City / Country Not In Service Area
+X58,Paperwork Available
+X59,Dimensional Weight (DIM)
+X60,Delayed- Beyond Our Control
+X61,MX Delay - Air / Linehaul
+X62,Customs Paperwork Inbound
+X63,Linehaul / Truck Breakdown
+X64,Customer Unable To Pay Charges
+X65,Incorrect Pickup Information
+X66,No Pickup Attempt Made
+X68,Delivery Exception
+X69,Criss-Cross Packages
+X70,Flood
+X71,Hajj Shipment Return To Origin / NEFF
+X72,Shifted On Delivery Attempt
