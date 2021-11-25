@@ -1,27 +1,22 @@
 <?php
 
-namespace Nextbyte\Courier\Drivers\Gdex;
+namespace Nextbyte\Courier\Drivers\BestExpress;
 
 use Carbon\Carbon;
-use GuzzleHttp\ClientInterface;
-use Illuminate\Http\File;
-use Illuminate\Support\Arr;
-use Nextbyte\Courier\Clients\Gdex\Gdex;
+use Nextbyte\Courier\Clients\BestExpress\BestExpress;
 use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Contracts\Consignmentable;
-use Nextbyte\Courier\Contracts\Courier;
 use Nextbyte\Courier\Drivers\Driver;
-use Nextbyte\Courier\Enums\ConsignmentStatus;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Shipment;
 
-class GdexDriver extends Driver
+class BestExpressDriver extends Driver
 {
     /**
-     * The Gdex client.
+     * The BestExpress client.
      *
-     * @var Gdex
+     * @var BestExpress
      */
     protected $client;
 
@@ -43,16 +38,16 @@ class GdexDriver extends Driver
     protected $config;
 
     /**
-     * Create a new Gdex driver instance.
+     * Create a new BestExpress driver instance.
      *
-     * @param Gdex $gdex
+     * @param BestExpress $bestExpress
      * @param string $from
      * @return void
      */
-    public function __construct(Gdex $gdex)
+    public function __construct(BestExpress $bestExpress)
     {
-        $this->client = $gdex;
-        $this->courierName = 'Gdex';
+        $this->client = $bestExpress;
+        $this->courierName = 'Best Express';
     }
 
     /**
@@ -73,7 +68,7 @@ class GdexDriver extends Driver
         if (!is_array($trackingNumbers))
             $trackingNumbers = [$trackingNumbers];
 
-        return new GdexTrackingResponse([
+        return new BestExpressTrackingResponse([
             'id' => 'GDEX',
             'input' => implode("\n", $trackingNumbers)
         ]);
@@ -119,19 +114,10 @@ class GdexDriver extends Driver
      */
     public function createConsignment(array $attributes)
     {
-        $response = $this->client->createConsignment([$attributes]);
-
-//        $response = [
-//            "success" => true,
-//            "s" => "success",
-//            "r" => [
-//                0 => "TCN1001182"
-//            ],
-//            "e" => ""
-//        ];
+        $response = $this->client->createConsignment($attributes);
 
         if (!$response || !data_get($response, 'success')) {
-            abort(500, data_get($response, 'e', 'Unknown create consignment error.'));
+            abort(500, data_get($response, 'errorDescription', 'Unknown create consignment error.'));
         }
 
         /**
@@ -145,7 +131,32 @@ class GdexDriver extends Driver
          *   "e": ""
          * ]
          */
-        return Arr::first(data_get($response, 'r'));
+        return data_get($response, 'mailNo');
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function createConsignmentWithSlip(array $attributes)
+    {
+        $response = $this->client->createConsignmentWithPdf($attributes);
+
+        if (!$response || !data_get($response, 'success')) {
+            abort(500, data_get($response, 'errorDescription', 'Unknown create consignment error.'));
+        }
+
+        $consignmentNo = data_get($response, 'mailNo');
+
+        return Consignment::create([
+            'orderNumber' =>  data_get($response, 'txLogisticId'),
+            'number' => $consignmentNo,
+            'slip' => ConsignmentFile::create([
+                'name' => "$consignmentNo.pdf",
+                'extension' => 'pdf',
+                'body' => base64_decode(data_get($response, 'pdfStream')),
+                'response' => $response,
+            ])
+        ]);
     }
 
     /**
@@ -153,18 +164,7 @@ class GdexDriver extends Driver
      */
     public function getConsignmentSlip($consignmentNumber)
     {
-        $response = $this->client->getZippedConsignmentImage($consignmentNumber);
-
-        if (!$response || $response->getStatusCode() !== 200) {
-            abort(500, data_get($response, 'message', 'Unknown api error.'));
-        }
-
-        return ConsignmentFile::create([
-            'name' => 'ConsignmentNote.zip',
-            'extension' => 'zip',
-            'body' => $response->getBody(),
-            'response' => $response,
-        ]);
+        throw new \BadMethodCallException('Get consignment slip method is not implemented. Please use createConsignmentWithSlip() to create consignment and save slip locally.');
     }
 
     /**
@@ -172,7 +172,9 @@ class GdexDriver extends Driver
      */
     public function getConsignmentableSlip(Consignmentable $consignmentable)
     {
-        return $this->getConsignmentSlip($consignmentable->getQueryConsignmentSlipAttributes($this->courierName));
+        $consignment = $this->createConsignmentWithSlip($consignmentable->getQueryConsignmentSlipAttributes($this->courierName));
+
+        return $consignment->slip;
     }
 
     /**
@@ -243,6 +245,6 @@ class GdexDriver extends Driver
      */
     protected function getTrackingMyCourierName()
     {
-        return 'gdex';
+        return 'best';
     }
 }

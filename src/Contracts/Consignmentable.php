@@ -21,4 +21,13 @@ interface Consignmentable
      * @return array
      */
     public function getConsignmentNumbers();
+
+    /**+
+     * Get all attributes requires by courier API to get consignment slip/waybill
+     *
+     * @param string $courierName
+     * @param array $data
+     * @return string|array
+     */
+    public function getQueryConsignmentSlipAttributes($courierName, array $data = []);
 }

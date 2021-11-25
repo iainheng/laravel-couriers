@@ -3,10 +3,11 @@
 namespace Nextbyte\Courier;
 
 use Illuminate\Support\Manager;
+use Nextbyte\Courier\Clients\BestExpress\BestExpress;
 use Nextbyte\Courier\Clients\Gdex\Gdex;
 use Nextbyte\Courier\Clients\NationwideExpress\NationwideExpress;
 use Nextbyte\Courier\Clients\PosLaju\PosLaju;
-use Nextbyte\Courier\Drivers\Best\BestDriver;
+use Nextbyte\Courier\Drivers\BestExpress\BestExpressDriver;
 use Nextbyte\Courier\Drivers\Dhl\DhlDriver;
 use Nextbyte\Courier\Drivers\Gdex\GdexDriver;
 use Nextbyte\Courier\Drivers\NationwideExpress\NationwideExpressDriver;
@@ -95,11 +96,11 @@ class CourierManager extends Manager
     /**
      * Create a Best Courier driver instance.
      *
-     * @return \Nextbyte\Courier\Drivers\Best\BestDriver
+     * @return \Nextbyte\Courier\Drivers\BestExpress\BestExpressDriver
      */
-    public function createBestDriver()
+    public function createBestExpressDriver()
     {
-        return new BestDriver();
+        return new BestExpressDriver(new BestExpress($this->config->get('courier.best-express')));
     }
 
     /**

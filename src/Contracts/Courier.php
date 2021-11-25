@@ -4,6 +4,7 @@ namespace Nextbyte\Courier\Contracts;
 
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
+use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
 
@@ -54,12 +55,29 @@ interface Courier
     public function createConsignment(array $attributes);
 
     /**
+     * Create a new consignment and get consignment slip/waybill
+     *
+     * @param array $attributes
+     * @return Consignment
+     */
+    public function createConsignmentWithSlip(array $attributes);
+
+    /**
      * Get consignment note images/slip
      *
      * @param string $consignmentNumber
+     * @throws \BadMethodCallException
      * @return ConsignmentFile
      */
     public function getConsignmentSlip($consignmentNumber);
+
+    /**
+     * Get consignment note slip/waybill based on consignmentable
+     *
+     * @param Consignmentable $consignmentable
+     * @return ConsignmentFile
+     */
+    public function getConsignmentableSlip(Consignmentable $consignmentable);
 
     /**
      * Get a latest shipment detail
