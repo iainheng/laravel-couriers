@@ -41,4 +41,9 @@ return [
         'subscription_key' => env('GDEX_SUBSCRIPTION_KEY', ''),
         'account_no' => env('GDEX_ACCOUNT_NO', ''),
     ],
+    'best-express' => [
+        'test_mode' => env('BESTEXPRESS_TEST_MODE', false),
+        'partner_id' => env('BESTEXPRESS_PARTNER_ID', ''),
+        'partner_key' => env('BESTEXPRESS_PARTNER_KEY', ''),
+    ],
 ];

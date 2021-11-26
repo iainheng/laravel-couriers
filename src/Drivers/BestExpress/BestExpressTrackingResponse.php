@@ -1,11 +1,11 @@
 <?php
-namespace Nextbyte\Courier\Drivers\Best;
+namespace Nextbyte\Courier\Drivers\BestExpress;
 
 use Illuminate\Support\Arr;
 use Nextbyte\Courier\Messages\AbstractTrackingResponse;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
 
-class BestTrackingResponse extends AbstractTrackingResponse implements RedirectResponseInterface
+class BestExpressTrackingResponse extends AbstractTrackingResponse implements RedirectResponseInterface
 {
     protected $endpoint = 'https://www.tracking.my/best';
 

@@ -6,6 +6,7 @@ use Illuminate\Support\Arr;
 use Illuminate\View\View;
 use Nextbyte\Courier\Concerns\EmbedTrackingMy;
 use Nextbyte\Courier\ConsignmentFile;
+use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Contracts\Courier;
 use Nextbyte\Courier\Exceptions\CourierException;
 
@@ -19,6 +20,13 @@ abstract class Driver implements Courier
      * @var array
     */
     protected $trackingNumbers;
+
+    /**
+     * General name of this courier
+     *
+     * @var string
+     */
+    protected $courierName;
 
 //    /**
 //     * {@inheritdoc}
@@ -56,11 +64,24 @@ abstract class Driver implements Courier
         // TODO: Implement createConsignment() method.
     }
 
+    public function createConsignmentWithSlip(array $attributes)
+    {
+        // TODO: Implement createConsignmentWithSlip() method.
+    }
+
     /**
      * @inheritDoc
      */
     public function getConsignmentSlip($consignmentNumber)
     {
         // TODO: Implement getConsignmentSlip() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConsignmentableSlip(Consignmentable $consignmentable)
+    {
+        // TODO: Implement getConsignmentableSlip() method.
     }
 }

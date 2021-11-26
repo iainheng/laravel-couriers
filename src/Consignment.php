@@ -15,6 +15,11 @@ class Consignment
     public $number;
 
     /**
+     * @var string
+     */
+    public $orderNumber;
+
+    /**
      * Main consignment status
      * @var string
      */
@@ -69,6 +74,11 @@ class Consignment
      * @var array
      */
     public $rawShipments;
+
+    /**
+     * @var ConsignmentFile
+     */
+    public $slip;
 
     protected function __construct(array $attributes)
     {
