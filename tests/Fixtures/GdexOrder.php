@@ -8,7 +8,7 @@ use Illuminate\Support\Str;
 
 class GdexOrder extends Order
 {
-    public function toConsignmentableArray($courierName, array $data = [])
+    protected function setup()
     {
         $faker = \Faker\Factory::create('ms_MY');
 
@@ -23,7 +23,7 @@ class GdexOrder extends Order
             'state' => $faker->state(),
         ];
 
-        return [
+        $this->consignmentableData = [
             "accountNo" => config('courier.gdex.account_no'),
             "shipmentType" => "Parcel",
             "totalPiece" => rand(1,5),

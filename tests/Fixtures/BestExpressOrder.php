@@ -5,16 +5,17 @@ namespace Nextbyte\Tests\Courier\Fixtures;
 
 class BestExpressOrder extends Order
 {
+
     public function __construct($orderNumber, $customerName, $consignmentNumbers = [])
     {
         parent::__construct($orderNumber, $customerName, $consignmentNumbers);
     }
 
-    public function toConsignmentableArray($courierName, array $data = [])
+    protected function setup()
     {
         $faker = \Faker\Factory::create('ms_MY');
 
-        return [
+        $this->setConsignmentableData([
             "customerName" => $this->customerName,
             "txLogisticId" => $this->orderNumber,
             "serviceType" => "1",
@@ -38,10 +39,10 @@ class BestExpressOrder extends Order
             ],
             "receiver" => [
                 "name" => "receiver",
-                "postCode" => "50110",
+                "postCode" => "77500",
                 "mobile" => "13927089988",
-                "prov" => "Selangor",
-                "city" => " Ulu Langat ",
+                "prov" => "Melaka",
+                "city" => " Selandar",
                 "county" => "Cheras",
                 "address" => "456",
                 "email" => "kkk@email.com",
@@ -51,13 +52,13 @@ class BestExpressOrder extends Order
                 "item" => [
                     [
                         "itemName" => $faker->linuxPlatformToken
-                    ]
+                    ],
                 ]
             ],
             "itemsWeight" => rand(1, 5),
             "piece" => "1",
             "remark" => ""
-        ];
+        ]);
     }
 
     public function getQueryConsignmentSlipAttributes($courierName, array $data = [])
