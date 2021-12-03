@@ -1,11 +1,21 @@
 {
-  "txLogisticId": "TO1702200461625640",
-  "mailNo": "60850007041815",
-  "packageStatusCode": "delivered",
-  "statusCodeDesc": "delivered",
-  "operateTime": "1621318669013",
-  "pushTime": "1621318669013",
-  "currentCity": "Petaling",
-  "remark": "Shipment 【signPOD】,Recipient type【Consignee】, POD by 【123】,POD station is 【testsiteA】, POD scan updated by 【testsitea】",
-  "weight": "3.0"
+  "bizData": {
+    "txLogisticId": "INV046JKLGBG",
+    "mailNo": "60851003096149",
+    "packageStatusCode": "order_success",
+    "statusCodeDesc": "order success",
+    "operateTime": 1638520339290,
+    "currentCity": "Ayer Tawar 4",
+    "nextCity": null,
+    "weight": null,
+    "pushTime": 1638521509041,
+    "remark": "Ayer Tawar 4【BestVietnamExpress】,pick up",
+    "receiverType": null,
+    "receiverName": null,
+    "receiverSignature": null,
+    "receiverImage": null
+  },
+  "partnerID": "M_DWMAJU",
+  "serviceType": "KD_ORDER_STATUS_PUSH",
+  "sign": "71e5189b0d12798ef8181e4ef86d0a0b"
 }
