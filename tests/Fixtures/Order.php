@@ -4,6 +4,7 @@ namespace Nextbyte\Tests\Courier\Fixtures;
 
 
 use Nextbyte\Courier\Contracts\Consignmentable;
+use Nextbyte\Courier\Enums\ShipmentStatus;
 
 abstract class Order implements Consignmentable
 {
@@ -23,6 +24,11 @@ abstract class Order implements Consignmentable
     protected $consignmentNumbers;
 
     /**
+     * @var string
+     */
+    protected $shipmentStatus;
+
+    /**
      * @var array
      */
     protected $consignmentableData = [];
@@ -32,6 +38,7 @@ abstract class Order implements Consignmentable
         $this->orderNumber = $orderNumber;
         $this->customerName = $customerName;
         $this->consignmentNumbers = $consignmentNumbers;
+        $this->shipmentStatus = ShipmentStatus::Pending;
 
         $this->setup();
     }
@@ -52,6 +59,54 @@ abstract class Order implements Consignmentable
     public function setConsignmentNumbers($consignmentNumbers): void
     {
         $this->consignmentNumbers = $consignmentNumbers;
+    }
+
+    /**
+     * @return string
+     */
+    public function getOrderNumber()
+    {
+        return $this->orderNumber;
+    }
+
+    /**
+     * @param string $orderNumber
+     */
+    public function setOrderNumber(string $orderNumber): void
+    {
+        $this->orderNumber = $orderNumber;
+    }
+
+    /**
+     * @return string
+     */
+    public function getCustomerName(): string
+    {
+        return $this->customerName;
+    }
+
+    /**
+     * @param string $customerName
+     */
+    public function setCustomerName(string $customerName): void
+    {
+        $this->customerName = $customerName;
+    }
+
+    /**
+     * @return string
+     */
+    public function getShipmentStatus(): string
+    {
+        return $this->shipmentStatus;
+    }
+
+    /**
+     * @param string $shipmentStatus
+     */
+    public function setShipmentStatus(string $shipmentStatus): void
+    {
+        $this->shipmentStatus = $shipmentStatus;
     }
 
     public function toConsignmentableArray($courierName, array $data = [])

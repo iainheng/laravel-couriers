@@ -11,6 +11,7 @@ use Orchestra\Testbench\TestCase as OrchestraTestCase;
 abstract class TestCase extends OrchestraTestCase
 {
     protected $loadEnvironmentVariables = true;
+
     protected function setUp(): void
     {
         if (file_exists(dirname(__DIR__) . '/.env')) {

@@ -2,11 +2,13 @@
 
 namespace Nextbyte\Courier\Contracts;
 
+use Illuminate\Http\Response;
 use Illuminate\Support\Collection;
 use Illuminate\View\View;
 use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
+use Nextbyte\Courier\ShipmentStatusPush;
 
 interface Courier
 {
@@ -86,4 +88,12 @@ interface Courier
      * @return Collection|\Nextbyte\Courier\Shipment[]
      */
     public function getConsignmentsLastShipment(array $consignmentNumbers);
+
+    /**
+     * Transform shipment status pushed from courier API
+     *
+     * @param array $attributes
+     * @return Response
+     */
+    public function pushShipmentStatus(callable $callback, array $attributes = []);
 }

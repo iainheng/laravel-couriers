@@ -10,6 +10,7 @@ use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Shipment;
+use Nextbyte\Courier\ShipmentStatusPush;
 
 class BestExpressDriver extends Driver
 {
@@ -147,16 +148,41 @@ class BestExpressDriver extends Driver
 
         $consignmentNo = data_get($response, 'mailNo');
 
-        return Consignment::create([
-            'orderNumber' =>  data_get($response, 'txLogisticId'),
-            'number' => $consignmentNo,
-            'slip' => ConsignmentFile::create([
-                'name' => "$consignmentNo.pdf",
-                'extension' => 'pdf',
-                'body' => base64_decode(data_get($response, 'pdfStream')),
-                'response' => $response,
-            ])
-        ]);
+        $childMailNos = data_get($response, 'childMailNo.mailNo');
+
+        if (!empty($childMailNos)) {
+            $filename = "$consignmentNo.zip";
+
+            $zip = new \PhpZip\ZipFile();
+
+            foreach ($childMailNos as $i => $childMailNo) {
+                $zip->addFromString("$childMailNo.pdf", base64_decode(data_get($response, 'pdfStreamList.'. $i)));
+            }
+
+            $zipContent = $zip->outputAsString();
+
+            return Consignment::create([
+                'orderNumber' =>  data_get($response, 'txLogisticId'),
+                'number' => $consignmentNo,
+                'slip' => ConsignmentFile::create([
+                    'name' => $filename,
+                    'extension' => 'zip',
+                    'body' => $zipContent,
+                    'response' => $response,
+                ])
+            ]);
+        } else {
+            return Consignment::create([
+                'orderNumber' =>  data_get($response, 'txLogisticId'),
+                'number' => $consignmentNo,
+                'slip' => ConsignmentFile::create([
+                    'name' => "$consignmentNo.pdf",
+                    'extension' => 'pdf',
+                    'body' => base64_decode(data_get($response, 'pdfStream')),
+                    'response' => $response,
+                ])
+            ]);
+        }
     }
 
     /**
@@ -193,6 +219,47 @@ class BestExpressDriver extends Driver
         });
     }
 
+    /** @inheritDoc */
+    public function pushShipmentStatus(callable $callback, array $attributes = [])
+    {
+        $status = data_get($attributes, 'packageStatusCode');
+
+        if (!empty($status))
+            $status = $this->normalizeShipmentStatus($status);
+
+        $pushStatus = ShipmentStatusPush::create([
+            'orderNumber' => data_get($attributes, 'txLogisticId'),
+            'consignmentNumber' => data_get($attributes, 'mailNo'),
+            'status' => $status,
+            'description' => ShipmentStatus::getDescription($status),
+            'date' => Carbon::createFromTimestamp(strtotime(data_get($attributes, 'pushTime'))),
+            'currentCity' => data_get($attributes, 'currentCity'),
+            'nextCity' => data_get($attributes, 'nextCity'),
+            'remarks' => data_get($attributes, 'remarks'),
+        ]);
+
+        try {
+            /**@var $consignmentable Consignmentable */
+            $consignmentable = $callback($pushStatus);
+        } catch (\Exception $e) {
+            return response()->json([
+                'result' => false,
+                'remark' => $pushStatus->getOrderNumber(),
+                'errorCode' => $e->getCode(),
+                'errorDescription' => $e->getMessage(),
+            ]);
+        }
+
+        $success = $consignmentable instanceof Consignmentable;
+
+        return response()->json([
+            'result' => $success,
+            'remark' => $consignmentable->getOrderNumber(),
+            'errorCode' => '',
+            'errorDescription' => ''
+        ]);
+    }
+
     /**
      * @param $statusCode
      * @return string
@@ -200,21 +267,30 @@ class BestExpressDriver extends Driver
     protected function normalizeShipmentStatus($statusCode)
     {
         switch ($statusCode) {
-            case 0:
-                return ShipmentStatus::Pending;
-            case 1:
+            case 'order_success':
+                return ShipmentStatus::Accepted;
+            case 'order_failure':
+                return ShipmentStatus::AcceptFailed;
+            case 'pickup_success':
                 return ShipmentStatus::Pickup;
-            case 2:
+            case 'pickup_failure':
+                return ShipmentStatus::PickupFailed;
+            case 'arrive_station':
+            case 'send_from_station':
+            case 'arrive_hub':
+            case 'send_from_hub':
                 return ShipmentStatus::InTransit;
-            case 3:
+            case 'out_for_delivery':
                 return ShipmentStatus::OutForDelivery;
-            case 4:
+            case 'delivered':
                 return ShipmentStatus::Delivered;
-            case 5:
+            case 'package_return':
+                return ShipmentStatus::ReturnStart;
+            case 'return_success':
                 return ShipmentStatus::Returned;
-            case 6:
-                return ShipmentStatus::Claim;
-            case 7:
+            case 'hold_in_station':
+                return ShipmentStatus::OnHold;
+            case 'specialPOD':
                 return ShipmentStatus::Undelivered;
             default:
         }
@@ -231,10 +307,10 @@ class BestExpressDriver extends Driver
         $status = $this->normalizeShipmentStatus(data_get($data, 'enumStatus'));
 
         return Shipment::create([
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'latestScanDateTime'))),
-            'origin' => data_get($data, 'location'),
-            'destination' => data_get($data, 'location'),
-            'location' => data_get($data, 'location'),
+            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'pushTime'))),
+            'origin' => data_get($data, 'currentCity'),
+            'destination' => data_get($data, 'nextCity'),
+            'location' => data_get($data, 'currentCity'),
             'status' => $status,
             'description' => ShipmentStatus::getDescription($status)
         ]);

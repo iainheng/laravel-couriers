@@ -98,8 +98,7 @@ class BestExpress
     {
         try {
             $response = $this->request('KD_CREATE_WAYBILL_ORDER_PDF_NOTIFY', $payload);
-
-//            $response = $this->client->post($this->getEndpointUrl(), $options);
+//            $response = json_decode(file_get_contents(__DIR__ . '/../../../tests/Fixtures/data/best-express/multi_waybills_pdf_response.json'), true);
         } catch (ClientException $exception) {
             throw $this->determineException($exception);
         }
@@ -147,19 +146,19 @@ class BestExpress
     public function getShipmentStatusDetail(string $consignmentNumber)
     {
         try {
-            $options = ['headers' => $this->getHeaders(), 'query' => [
-                'consignmentNumber' => $consignmentNumber
-            ]];
-
-            $response = $this->client->get($this->getEndpointUrl("GetShipmentStatusDetail"), $options);
+            $response = $this->request('KD_TRACE_QUERY', [
+                'mailNos' => [
+                    'mailNo' => [
+                        $consignmentNumber
+                    ]
+                ]
+            ]);
         } catch (ClientException $exception) {
             throw $this->determineException($exception);
         }
 
-        $response = json_decode($response->getBody(), true);
-
         return json_decode(json_encode(array_merge($response, [
-            'success' => data_get($response, 's') === 'success',
+            'success' => data_get($response, 'result') == 'true',
         ])));
     }
 

@@ -2,13 +2,14 @@
 
 namespace Nextbyte\Tests\Courier\Unit;
 
-use Illuminate\Support\Arr;
-use Illuminate\Support\Str;
+use Illuminate\Http\JsonResponse;
 use Mockery as m;
 use Nextbyte\Courier\Drivers\BestExpress\BestExpressDriver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
+use Nextbyte\Courier\ShipmentStatusPush;
 use Nextbyte\Tests\Courier\Fixtures\BestExpressOrder;
 use Nextbyte\Tests\Courier\TestCase;
+use Symfony\Component\HttpFoundation\Response;
 
 class BestExpressTest extends TestCase
 {
@@ -110,7 +111,7 @@ class BestExpressTest extends TestCase
         $attributes = $this->makeConsignmentRequestParams();
 
 //        dump($attributes);
-        $attributes['txLogisticId'] = 'ORD-9999';
+        $attributes['txLogisticId'] = 'ORD-99999TEST';
         $consignment = $courier->createConsignmentWithSlip($attributes);
 
         $this->assertObjectHasAttribute('number', $consignment);
@@ -125,21 +126,55 @@ class BestExpressTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName);
 
-        $order = new BestExpressOrder('ORD-9999', 'Jane Doe');
+        $order = new BestExpressOrder('ORD-10002TEST', 'Jane Doe');
 
         $consignmentFile = $courier->getConsignmentableSlip($order);
 
-//        dump($consignmentFile);
-
         $this->assertEquals('pdf', $consignmentFile->getExtension());
         $this->assertNotEmpty($consignmentFile->getBody());
+    }
+
+    public function test_it_can_get_multiple_consignment_slip_when_order_has_multiple_items()
+    {
+        $courier = $this->makeDriver($this->driverName);
+
+        $order = new BestExpressOrder('ORD-10003TEST', 'Jane Doe');
+
+        $order->set('items.item', array_merge($order->get('items.item'), [
+                ["itemName" => "Another item"]
+            ]))
+            ->set('piece', 2);
+
+        $consignmentFile = $courier->getConsignmentableSlip($order);
+
+        $this->assertEquals('zip', $consignmentFile->getExtension());
+        $this->assertNotEmpty($consignmentFile->getBody());
+    }
+
+    public function test_it_can_push_update_order_shipment_status()
+    {
+        /**@var $courier BestExpressDriver */
+        $courier = $this->makeDriver($this->driverName);
+
+        $order = new BestExpressOrder('ORD-10002TEST', 'Jane Doe');
+
+        $pushData = json_decode(file_get_contents('../Fixtures/data/best-express/shipment_push_request.json'),
+            true);
+
+        $response = $courier->pushShipmentStatus(function (ShipmentStatusPush $push) use ($order) {
+            $order->setShipmentStatus($push->getStatus());
+            return $order;
+        }, $pushData);
+
+        $this->assertEquals(ShipmentStatus::Delivered, $order->getShipmentStatus());
+        $this->assertInstanceOf(JsonResponse::class, $response);
     }
 
     public function test_it_can_get_consignment_shipments_details()
     {
         $courier = $this->makeDriver($this->driverName);
 
-        $consignment = $courier->consignment('MY98000781824');
+        $consignment = $courier->consignment('60710185826000');
 
         $this->assertEquals(ShipmentStatus::Delivered, $consignment->status);
         $this->assertEquals('Port Klang', optional($consignment->shipments->first())->location);

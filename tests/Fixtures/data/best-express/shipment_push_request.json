@@ -1,0 +1,11 @@
+{
+  "txLogisticId": "TO1702200461625640",
+  "mailNo": "60850007041815",
+  "packageStatusCode": "delivered",
+  "statusCodeDesc": "delivered",
+  "operateTime": "1621318669013",
+  "pushTime": "1621318669013",
+  "currentCity": "Petaling",
+  "remark": "Shipment 【signPOD】,Recipient type【Consignee】, POD by 【123】,POD station is 【testsiteA】, POD scan updated by 【testsitea】",
+  "weight": "3.0"
+}

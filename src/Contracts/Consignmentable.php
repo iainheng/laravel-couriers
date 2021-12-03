@@ -8,6 +8,13 @@ use Nextbyte\Courier\Messages\RedirectResponseInterface;
 interface Consignmentable
 {
     /**
+     * Get order number
+     *
+     * @return string
+     */
+    public function getOrderNumber();
+
+    /**
      * Create consignment note attributes required by courier driver to create a new consignment note
      *
      * @param null|string $courierName

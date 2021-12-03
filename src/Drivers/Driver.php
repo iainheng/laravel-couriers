@@ -9,6 +9,7 @@ use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Contracts\Courier;
 use Nextbyte\Courier\Exceptions\CourierException;
+use Nextbyte\Courier\Exceptions\UnsupportedCourierMethodException;
 
 abstract class Driver implements Courier
 {
@@ -83,5 +84,13 @@ abstract class Driver implements Courier
     public function getConsignmentableSlip(Consignmentable $consignmentable)
     {
         // TODO: Implement getConsignmentableSlip() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function pushShipmentStatus(callable $callback, array $attributes = [])
+    {
+        throw new UnsupportedCourierMethodException("Courier API doesn't support shipment status push.");
     }
 }
