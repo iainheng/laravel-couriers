@@ -166,9 +166,11 @@ class BestExpressTest extends TestCase
             return $order;
         }, $pushData);
 
-        $this->assertEquals(ShipmentStatus::Accepted, $order->getShipmentStatus());
+        dump($response->content());
+
         $this->assertInstanceOf(JsonResponse::class, $response);
         $this->assertEquals(true, data_get(json_decode($response->content()), 'result'));
+        $this->assertEquals(ShipmentStatus::Accepted, $order->getShipmentStatus());
     }
 
     public function test_it_can_get_consignment_shipments_details()

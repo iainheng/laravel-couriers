@@ -2,10 +2,13 @@
 
 namespace Nextbyte\Courier\Clients\BestExpress;
 
+use Carbon\Carbon;
 use GuzzleHttp\Exception\ClientException;
-use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Auth\Access\AuthorizationException;
+use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
+use Nextbyte\Courier\Exceptions\MissingRequiredParamException;
+use Nextbyte\Courier\ShipmentStatusPush;
 
 class BestExpress
 {
@@ -109,6 +112,38 @@ class BestExpress
     }
 
     /**
+     * @param array $attributes
+     * @param callable|null $statusCallback
+     * @return ShipmentStatusPush
+     */
+    public function createShipmentStatusPush($attributes = [], callable $statusCallback = null)
+    {
+        if (!$this->validateRequestData($attributes))
+            throw new AuthorizationException('You are not authorized to perform this action. Signature token is invalid.');
+
+        $bizData = data_get($attributes, 'bizData');
+
+        $status = data_get($bizData, 'packageStatusCode');
+
+        if ($statusCallback) {
+            $status = $statusCallback($status);
+        }
+
+        $pushStatus = ShipmentStatusPush::create([
+            'orderNumber' => data_get($bizData, 'txLogisticId'),
+            'consignmentNumber' => data_get($bizData, 'mailNo'),
+            'status' => $status,
+            'description' => ShipmentStatus::getDescription($status),
+            'date' => Carbon::createFromTimestamp(strtotime(data_get($bizData, 'pushTime'))),
+            'currentCity' => data_get($bizData, 'currentCity'),
+            'nextCity' => data_get($bizData, 'nextCity'),
+            'remarks' => data_get($bizData, 'remarks'),
+        ]);
+
+        return $pushStatus;
+    }
+
+    /**
      * Get latest shipment status for multiple consignments
      *
      * @param array $consignmentNumbers
@@ -172,7 +207,7 @@ class BestExpress
     {
         try {
             if (!is_string($bizData)) {
-                $bizData = json_encode($bizData, 512);
+                $bizData = json_encode($bizData, JSON_UNESCAPED_UNICODE );
             }
 
             $options = ['headers' => $this->getHeaders()];
@@ -196,6 +231,37 @@ class BestExpress
         $response = json_decode(str_replace('SYSTEM_ERROR', '', $response->getBody()), true);
 
         return $response ?? [];
+    }
+
+    /**
+     * Validate against request params to make sure it is from valid source
+     *
+     * @param array $attributes
+     * @return bool
+     */
+    protected function validateRequestData($attributes = [])
+    {
+        $signature = data_get($attributes, 'sign');
+        $bizData = data_get($attributes, 'bizData');
+
+        if (empty($signature))
+            throw new MissingRequiredParamException('sign', $signature);
+
+        if (empty($bizData))
+            throw new MissingRequiredParamException('bizData', $attributes);
+
+        $bizDataStr = json_encode($bizData, JSON_UNESCAPED_UNICODE);
+
+//        dump($bizDataStr . $this->partnerKey);
+//        dump($signature);
+//        dump(md5($bizDataStr . $this->partnerKey));
+//        dd($this->generateSignature($bizDataStr));
+
+        //TODO: for reason the incoming sign is hashed without utf8_encode
+        $compareSignature = md5($bizDataStr . $this->partnerKey);
+
+        return $compareSignature === $signature;
+//        return $this->generateSignature($bizDataStr) === $signature;
     }
 
     /**

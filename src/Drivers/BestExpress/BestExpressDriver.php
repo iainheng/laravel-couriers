@@ -10,7 +10,6 @@ use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Shipment;
-use Nextbyte\Courier\ShipmentStatusPush;
 
 class BestExpressDriver extends Driver
 {
@@ -222,31 +221,37 @@ class BestExpressDriver extends Driver
     /** @inheritDoc */
     public function pushShipmentStatus(callable $callback, array $attributes = [])
     {
-        $bizData = data_get($attributes, 'bizData');
+//        $bizData = data_get($attributes, 'bizData');
+//
+//        $status = data_get($bizData, 'packageStatusCode');
+//
+//        if (!empty($status))
+//            $status = $this->normalizeShipmentStatus($status);
+//
+//        $pushStatus = ShipmentStatusPush::create([
+//            'orderNumber' => data_get($bizData, 'txLogisticId'),
+//            'consignmentNumber' => data_get($bizData, 'mailNo'),
+//            'status' => $status,
+//            'description' => ShipmentStatus::getDescription($status),
+//            'date' => Carbon::createFromTimestamp(strtotime(data_get($bizData, 'pushTime'))),
+//            'currentCity' => data_get($bizData, 'currentCity'),
+//            'nextCity' => data_get($bizData, 'nextCity'),
+//            'remarks' => data_get($bizData, 'remarks'),
+//        ]);
 
-        $status = data_get($bizData, 'packageStatusCode');
-
-        if (!empty($status))
-            $status = $this->normalizeShipmentStatus($status);
-
-        $pushStatus = ShipmentStatusPush::create([
-            'orderNumber' => data_get($bizData, 'txLogisticId'),
-            'consignmentNumber' => data_get($bizData, 'mailNo'),
-            'status' => $status,
-            'description' => ShipmentStatus::getDescription($status),
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($bizData, 'pushTime'))),
-            'currentCity' => data_get($bizData, 'currentCity'),
-            'nextCity' => data_get($bizData, 'nextCity'),
-            'remarks' => data_get($bizData, 'remarks'),
-        ]);
+        $orderNumber = data_get($attributes, 'bizData.txLogisticId');
 
         try {
+            $pushStatus = $this->client->createShipmentStatusPush($attributes, function ($statusCode) {
+                return $this->normalizeShipmentStatus($statusCode);
+            });
+
             /**@var $consignmentable Consignmentable */
             $consignmentable = $callback($pushStatus);
         } catch (\Exception $e) {
             return response()->json([
                 'result' => false,
-                'remark' => $pushStatus->getOrderNumber(),
+                'remark' => $orderNumber,
                 'errorCode' => $e->getCode(),
                 'errorDescription' => $e->getMessage(),
             ]);
