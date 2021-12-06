@@ -238,6 +238,7 @@ class BestExpressDriver extends Driver
 //            'nextCity' => data_get($bizData, 'nextCity'),
 //            'remarks' => data_get($bizData, 'remarks'),
 //        ]);
+
         // unserialize bizData if it is string
         if (is_string(data_get($attributes, 'bizData')))
             $attributes['bizData'] = json_decode(data_get($attributes, 'bizData'));

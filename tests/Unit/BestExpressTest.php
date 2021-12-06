@@ -173,6 +173,28 @@ class BestExpressTest extends TestCase
         $this->assertEquals(ShipmentStatus::Accepted, $order->getShipmentStatus());
     }
 
+    public function test_it_can_push_update_order_shipment_status_with_raw_request()
+    {
+        /**@var $courier BestExpressDriver */
+        $courier = $this->makeDriver($this->driverName);
+
+        $order = new BestExpressOrder('ORD-10002TEST', 'Jane Doe');
+
+        $pushData = json_decode(file_get_contents('../Fixtures/data/best-express/raw_shipment_push_request.json'),
+            true);
+
+        $response = $courier->pushShipmentStatus(function (ShipmentStatusPush $push) use ($order) {
+            $order->setShipmentStatus($push->getStatus());
+            return $order;
+        }, $pushData);
+
+        dump($response->content());
+
+        $this->assertInstanceOf(JsonResponse::class, $response);
+        $this->assertEquals(true, data_get(json_decode($response->content()), 'result'));
+        $this->assertEquals(ShipmentStatus::OutForDelivery, $order->getShipmentStatus());
+    }
+
     public function test_it_can_get_consignment_shipments_details()
     {
         $courier = $this->makeDriver($this->driverName);

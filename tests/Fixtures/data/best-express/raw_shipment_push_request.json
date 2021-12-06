@@ -1,0 +1,6 @@
+{
+  "bizData": "{\"txLogisticId\":\"00039UH6UEV\",\"mailNo\":\"60710183844000\",\"packageStatusCode\":\"out_for_delivery\",\"statusCodeDesc\":\"out for delivery\",\"operateTime\":1638780294457,\"currentCity\":\"Pontian\",\"nextCity\":null,\"weight\":\"1.0\",\"pushTime\":1638780296745,\"remark\":\"Pontian\\u3010TestSiteA\\u3011,\\u3010TestSiteA\\/987654321\\u3011 delivery on the way\",\"receiverType\":null,\"receiverName\":null,\"receiverSignature\":null,\"receiverImage\":null}",
+  "partnerID": "M_DWMAJU",
+  "serviceType": "KD_ORDER_STATUS_PUSH",
+  "sign": "c77cf3028252e097c177266c55e4d424"
+}

@@ -250,7 +250,7 @@ class BestExpress
         if (empty($bizData))
             throw new MissingRequiredParamException('bizData', $attributes);
 
-        $bizDataStr = json_encode($bizData, JSON_UNESCAPED_UNICODE);
+        $bizDataStr = json_encode($bizData, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
 
 //        dump($bizDataStr . $this->partnerKey);
 //        dump($signature);
