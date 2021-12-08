@@ -9,6 +9,7 @@ use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
+use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Shipment;
 
 class BestExpressDriver extends Driver
@@ -142,7 +143,7 @@ class BestExpressDriver extends Driver
         $response = $this->client->createConsignmentWithPdf($attributes);
 
         if (!$response || !data_get($response, 'success')) {
-            abort(500, data_get($response, 'errorDescription', 'Unknown create consignment error.'));
+            throw new CourierException(data_get($response, 'errorDescription', 'Unknown create consignment error.'));
         }
 
         $consignmentNo = data_get($response, 'mailNo');

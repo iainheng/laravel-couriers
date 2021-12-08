@@ -14,6 +14,7 @@ use Nextbyte\Courier\Contracts\Courier;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ConsignmentStatus;
 use Nextbyte\Courier\Enums\ShipmentStatus;
+use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Shipment;
 
 class GdexDriver extends Driver
@@ -88,7 +89,7 @@ class GdexDriver extends Driver
         $response = $this->client->getShipmentStatusDetail($trackingNumber);
 
         if (!$response || !data_get($response, 'success')) {
-            abort(500, data_get($response, 'e', 'Unknown error getting consignments shipment details'));
+            throw new CourierException(data_get($response, 'e', 'Unknown error getting consignments shipment details'));
         }
 
         $rawShipments = collect(data_get($response, 'r.cnDetailStatusList', []));
