@@ -200,11 +200,13 @@ class BestExpress
     /**
      * Generate order push data to simulate incoming push data from Best Express
      *
-     * @param string $bizDataStr
+     * @param array|object $bizData
      * @return array
      */
-    public function generateOrderPushData(string $bizDataStr)
+    public function generateOrderPushData($bizData)
     {
+        $bizDataStr = json_encode($bizData, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES);
+
         return [
             'bizData' => $bizDataStr,
             'serviceType' => 'KD_ORDER_STATUS_PUSH',

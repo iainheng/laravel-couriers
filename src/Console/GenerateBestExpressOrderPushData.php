@@ -47,8 +47,10 @@ class GenerateBestExpressOrderPushData extends Command
         if (!$bizData)
             $bizData = $this->ask("What is the bizData (in JSON string)?");
 
+        $bizData = json_decode($bizData);
+
         $json = $this->bestExpress->generateOrderPushData($bizData);
 
-        $this->line(stripslashes(json_encode($json, JSON_UNESCAPED_SLASHES)));
+        $this->line(stripslashes(json_encode($json, JSON_UNESCAPED_UNICODE|JSON_UNESCAPED_SLASHES)));
     }
 }
