@@ -198,6 +198,22 @@ class BestExpress
     }
 
     /**
+     * Generate order push data to simulate incoming push data from Best Express
+     *
+     * @param string $bizDataStr
+     * @return array
+     */
+    public function generateOrderPushData(string $bizDataStr)
+    {
+        return [
+            'bizData' => $bizDataStr,
+            'serviceType' => 'KD_ORDER_STATUS_PUSH',
+            'partnerID' => $this->partnerId,
+            'sign' => $this->generateSignature($bizDataStr, false)
+        ];
+    }
+
+    /**
      * @param string $serviceType
      * @param array|null $parameters
      * @return array
@@ -258,7 +274,7 @@ class BestExpress
 //        dd($this->generateSignature($bizDataStr));
 
         //TODO: for reason the incoming sign is hashed without utf8_encode
-        $compareSignature = md5($bizDataStr . $this->partnerKey);
+        $compareSignature = $this->generateSignature($bizDataStr, false);
 
         return $compareSignature === $signature;
 //        return $this->generateSignature($bizDataStr) === $signature;
@@ -266,11 +282,16 @@ class BestExpress
 
     /**
      * @param string $dataInString
+     * @param bool $encode
      * @return string
      */
-    protected function generateSignature(string $dataInString)
+    protected function generateSignature(string $dataInString, $encode = true)
     {
-        return md5(utf8_encode($dataInString . $this->partnerKey), false);
+        $str = $dataInString . $this->partnerKey;
+
+        $data = $encode ? utf8_encode($str) : $str;
+
+        return md5($data, false);
     }
 
     /**
