@@ -75,8 +75,7 @@ class GdexDriver extends Driver
             $trackingNumbers = [$trackingNumbers];
 
         return new GdexTrackingResponse([
-            'id' => 'GDEX',
-            'input' => implode("\n", $trackingNumbers)
+            'id' => implode("\n", $trackingNumbers)
         ]);
     }
 

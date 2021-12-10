@@ -70,8 +70,7 @@ class BestExpressDriver extends Driver
             $trackingNumbers = [$trackingNumbers];
 
         return new BestExpressTrackingResponse([
-            'id' => 'GDEX',
-            'input' => implode("\n", $trackingNumbers)
+            'id' => implode("\n", $trackingNumbers)
         ]);
     }
 
