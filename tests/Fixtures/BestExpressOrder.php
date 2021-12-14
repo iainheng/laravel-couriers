@@ -51,7 +51,7 @@ class BestExpressOrder extends Order
             "items" => [
                 "item" => [
                     [
-                        "itemName" => $faker->linuxPlatformToken
+                        "itemName" => '豪华礼盒 (可寄东马）Deluxe Gift Pack (East Malaysia Available)'
                     ],
                 ]
             ],

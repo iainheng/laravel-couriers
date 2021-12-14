@@ -204,17 +204,4 @@ class BestExpressTest extends TestCase
         $this->assertEquals(ShipmentStatus::Delivered, $consignment->status);
         $this->assertEquals('Port Klang', optional($consignment->shipments->first())->location);
     }
-
-    public function test_it_can_get_last_shipment_status()
-    {
-        $courier = $this->makeDriver($this->driverName);
-
-        $shipments = $courier->getConsignmentsLastShipment([
-            "MY98000781824",
-            "MY82108919154"
-        ]);
-
-        $this->assertCount(2, $shipments);
-        $this->assertEquals(ShipmentStatus::Delivered, data_get($shipments->get('MY98000781824'), 'status'));
-    }
 }

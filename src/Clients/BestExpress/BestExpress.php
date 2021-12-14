@@ -225,7 +225,7 @@ class BestExpress
     {
         try {
             if (!is_string($bizData)) {
-                $bizData = json_encode($bizData, JSON_UNESCAPED_UNICODE );
+                $bizData = json_encode($bizData, 512);
             }
 
             $options = ['headers' => $this->getHeaders()];
