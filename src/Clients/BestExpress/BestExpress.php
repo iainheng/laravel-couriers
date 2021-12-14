@@ -18,14 +18,14 @@ class BestExpress
     protected $client;
 
     /**
-     * The Gdex API endpoint.
+     * The production API endpoint.
      *
      * @var string
      */
-    protected $endpoint = 'http://sgp-seaedi-test.800best.com/Malaysia/kdapi/api/process';
+    protected $endpoint = 'http://sgp-seaedi.800best.com/Malaysia/kdapi/api/process';
 
     /**
-     * The Gdex Sandbox API endpoint.
+     * The sandbox API endpoint.
      *
      * @var string
      */
