@@ -1,0 +1,20 @@
+{
+  "labelResponse": {
+    "hdr": {
+      "messageType": "LABEL",
+      "messageDateTime": "2024-01-12T14:00: 49+08: 00",
+      "messageVersion": "1.4"
+    },
+    "bd": {
+      "responseStatus": {
+        "code": "202",
+        "message": "Message validation failed.",
+        "messageDetails": [
+          {
+            "messageDetail": "Invalid access token. Please provide a valid access token."
+          }
+        ]
+      }
+    }
+  }
+}

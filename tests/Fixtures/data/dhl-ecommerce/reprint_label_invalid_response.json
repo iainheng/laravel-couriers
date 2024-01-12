@@ -1,0 +1,17 @@
+{
+  "labelReprintResponse": {
+    "hdr": {
+      "messageType": "LABELREPRINT",
+      "messageDateTime": "2024-01-12T14:02:41+08:00",
+      "messageVersion": "1.0",
+      "messageLanguage": "en"
+    },
+    "bd": {
+      "responseStatus": {
+        "code": "202",
+        "message": "Message validation failed.",
+        "messageDetails": "Input validation failed: Consignee Address [\/labelReprintRequest\/bd\/shipmentItems[0]\/consigneeAddress]. Unexpected field."
+      }
+    }
+  }
+}

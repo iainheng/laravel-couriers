@@ -1,11 +1,11 @@
 <?php
-namespace Nextbyte\Courier\Drivers\Dhl;
+namespace Nextbyte\Courier\Drivers\DhlEcommerce;
 
 use Illuminate\Support\Arr;
 use Nextbyte\Courier\Messages\AbstractTrackingResponse;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
 
-class DhlTrackingResponse extends AbstractTrackingResponse implements RedirectResponseInterface
+class DhlEcommerceTrackingResponse extends AbstractTrackingResponse implements RedirectResponseInterface
 {
     protected $endpoint = 'https://www.tracking.my/dhl-ecommerce';
 

@@ -4,11 +4,12 @@ namespace Nextbyte\Courier;
 
 use Illuminate\Support\Manager;
 use Nextbyte\Courier\Clients\BestExpress\BestExpress;
+use Nextbyte\Courier\Clients\DhlEcommerce\DhlEcommerce;
 use Nextbyte\Courier\Clients\Gdex\Gdex;
 use Nextbyte\Courier\Clients\NationwideExpress\NationwideExpress;
 use Nextbyte\Courier\Clients\PosLaju\PosLaju;
 use Nextbyte\Courier\Drivers\BestExpress\BestExpressDriver;
-use Nextbyte\Courier\Drivers\Dhl\DhlDriver;
+use Nextbyte\Courier\Drivers\DhlEcommerce\DhlEcommerceDriver;
 use Nextbyte\Courier\Drivers\Gdex\GdexDriver;
 use Nextbyte\Courier\Drivers\NationwideExpress\NationwideExpressDriver;
 use Nextbyte\Courier\Drivers\Ninjavan\NinjavanDriver;
@@ -106,11 +107,12 @@ class CourierManager extends Manager
     /**
      * Create a Dhl Courier driver instance.
      *
-     * @return \Nextbyte\Courier\Drivers\Dhl\DhlDriver
+     * @return \Nextbyte\Courier\Drivers\DhlEcommerce\DhlEcommerceDriver
      */
-    public function createDhlDriver()
+    public function createDhlEcommerceDriver()
     {
-        return new DhlDriver();
+        return new DhlEcommerceDriver(new DhlEcommerce($this->config->get('courier.dhl-ecommerce'), null,
+            $this->container->get('cache')));
     }
 
     /**

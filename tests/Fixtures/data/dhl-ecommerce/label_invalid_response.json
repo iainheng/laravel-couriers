@@ -1,0 +1,36 @@
+{
+  "labelResponse": {
+    "hdr": {
+      "messageType": "LABEL",
+      "messageDateTime": "2024-01-12T15:00:51+08:00",
+      "messageVersion": "1.4"
+    },
+    "bd": {
+      "labels": [
+        {
+          "shipmentID": "03832-00",
+          "deliveryConfirmationNumber": null,
+          "content": null,
+          "responseStatus": {
+            "code": "202",
+            "message": "Message validation failed.",
+            "messageDetails": [
+              {
+                "messageDetail": "Input validation failed: Remarks [\/labelRequest\/bd\/shipmentItems[0]\/remarks]. Data type mismatch; string value expected (e.g. abc)."
+              }
+            ]
+          }
+        }
+      ],
+      "responseStatus": {
+        "code": "202",
+        "message": "Message validation failed.",
+        "messageDetails": [
+          {
+            "messageDetail": "Please refer to shipment item level response status for more details."
+          }
+        ]
+      }
+    }
+  }
+}

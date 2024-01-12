@@ -58,7 +58,7 @@ class BestExpressDriver extends Driver
     {
         $this->client->config($config);
 
-        return $this;
+        return parent::config($config);
     }
 
     /**

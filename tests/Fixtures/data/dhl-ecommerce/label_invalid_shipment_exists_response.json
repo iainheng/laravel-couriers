@@ -1,0 +1,37 @@
+{
+  "labelResponse": {
+    "hdr": {
+      "messageType": "LABEL",
+      "messageDateTime": "2024-01-12T14:02:41+08:00",
+      "messageVersion": "1.4"
+    },
+    "bd": {
+      "labels": [
+        {
+          "shipmentID": "ORD-10002TEST",
+          "deliveryConfirmationNo": null,
+          "labelURL": null,
+          "content": null,
+          "responseStatus": {
+            "code": "202",
+            "message": "Message validation failed.",
+            "messageDetails": [
+              {
+                "messageDetail": "Shipment with same Shipment ID exists. To generate new label, change Shipment ID. To reprint existing shipment label, resend with matching shipment data. Variances found for fields -> Remarks;  Shipper Address 1;  Shipper State;  Pickup Address 1;  Pickup State;  Consignee Address 1;  Consignee State;  Consignee Phone"
+              }
+            ]
+          }
+        }
+      ],
+      "responseStatus": {
+        "code": "400",
+        "message": "FAILED",
+        "messageDetails": [
+          {
+            "messageDetail": "No shipments are processed due to run time\/system errors;  Check shipment level response for more details"
+          }
+        ]
+      }
+    }
+  }
+}

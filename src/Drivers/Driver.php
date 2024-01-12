@@ -3,6 +3,8 @@
 namespace Nextbyte\Courier\Drivers;
 
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Nextbyte\Courier\Concerns\EmbedTrackingMy;
 use Nextbyte\Courier\ConsignmentFile;
@@ -14,6 +16,11 @@ use Nextbyte\Courier\Exceptions\UnsupportedCourierMethodException;
 abstract class Driver implements Courier
 {
     use EmbedTrackingMy;
+
+    /**
+     * @var array
+     */
+    protected $config;
 
     /**
      * The tracking numbers to send.
@@ -29,10 +36,41 @@ abstract class Driver implements Courier
      */
     protected $courierName;
 
+    /**
+     * @var bool
+     */
+    protected $debug = false;
+
 //    /**
 //     * {@inheritdoc}
 //     */
 //    abstract public function send();
+
+    /**
+     * @inheritDoc
+     */
+    public function config(array $config)
+    {
+        $this->config = $config;
+
+        $this->debug = data_get($config, 'debug', $this->debug);
+
+        return $this;
+    }
+
+    public function debug($message)
+    {
+        if ($this->debug) {
+            if (App::runningInConsole()) {
+                dump($message);
+            } else {
+                if (!is_string($message))
+                    $message = json_encode($message);
+
+                Log::debug($message);
+            }
+        }
+    }
 
     /**
      * @inheritDoc
@@ -47,14 +85,6 @@ abstract class Driver implements Courier
         $this->trackingNumbers = $trackingNumbers;
 
         return $this;
-    }
-
-    /**
-     * @inheritDoc
-     */
-    public function config(array $config)
-    {
-        // TODO: Implement config() method.
     }
 
     /**

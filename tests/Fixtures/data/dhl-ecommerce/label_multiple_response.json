@@ -1,0 +1,63 @@
+{
+  "labelResponse": {
+    "hdr": {
+      "messageType": "LABEL",
+      "messageDateTime": "2017-11-16T13:58:08+08:00",
+      "messageVersion": "1.4",
+      "messageLanguage": "en"
+    },
+    "bd": {
+      "labels": [{
+        "shipmentID": "2TH15107346524632",
+        "deliveryConfirmationNo": null,
+        "labelURL": null,
+        "content": null,
+        "responseStatus": {
+          "code": "200",
+          "message": "SUCCESS",
+          "messageDetails": [{
+            "messageDetail": "Shipment processed Successfully"
+          }
+          ]
+        },
+        "pieces": [{
+          "shipmentPieceID": "11",
+          "deliveryConfirmationNo": "5117112025347267",
+          "content": null,
+          "labelURL": "https://mykullstc004005.apis.dhl.com:8004/Portal/downloadLabel/MTE0MDA2MTU4MDF8NTk5OTk5OTEwOHwyVEgxNTEwNzM0NjUyNDYzMi0xMQ",
+          "responseStatus": {
+            "code": "200",
+            "message": "SUCCESS",
+            "messageDetails": [{
+              "messageDetail": "Shipment processed Successfully;"
+            }
+            ]
+          }
+        }, {
+          "shipmentPieceID": "12",
+          "deliveryConfirmationNo": "5117112025347367",
+          "content": null,
+          "labelURL": "https://mykullstc004005.apis.dhl.com:8004/Portal/downloadLabel/MTE0MDA2MTU4MDF8NTk5OTk5OTEwOHwyVEgxNTEwNzM0NjUyNDYzMi0xMg",
+          "responseStatus": {
+            "code": "200",
+            "message": "SUCCESS",
+            "messageDetails": [{
+              "messageDetail": "Shipment processed Successfully;"
+            }
+            ]
+          }
+        }
+        ]
+      }
+      ],
+      "responseStatus": {
+        "code": "200",
+        "message": "SUCCESS",
+        "messageDetails": [{
+          "messageDetail": "All shipments processed successfully"
+        }
+        ]
+      }
+    }
+  }
+}

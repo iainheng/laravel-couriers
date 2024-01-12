@@ -48,9 +48,14 @@ abstract class TestCase extends OrchestraTestCase
      * @param string $driver
      * @return \Nextbyte\Courier\Contracts\Courier
      */
-    protected function makeDriver($driver)
+    protected function makeDriver($driver, $config = [])
     {
-        return Courier::vendor($driver);
+        $courier = Courier::vendor($driver);
+
+        if (!empty($config))
+            $courier->config($config);
+
+        return $courier;
     }
 
 //    protected function getEnvironmentSetUp($app)

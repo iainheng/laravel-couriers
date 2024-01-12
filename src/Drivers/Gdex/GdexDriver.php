@@ -63,7 +63,7 @@ class GdexDriver extends Driver
     {
         $this->client->config($config);
 
-        return $this;
+        return parent::config($config);
     }
 
     /**

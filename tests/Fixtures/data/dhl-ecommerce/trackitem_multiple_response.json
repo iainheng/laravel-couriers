@@ -1,0 +1,125 @@
+{
+  "trackItemResponse": {
+    "hdr": {
+      "messageType": "TRACKITEM",
+      "messageDateTime": "2024-01-12T14:39:28+08:00",
+      "messageVersion": "1.0"
+    },
+    "bd": {
+      "shipmentItems": [
+        {
+          "masterShipmentID": "ORD-10007TEST",
+          "shipmentID": "ORD-10007TEST-1",
+          "trackingID": "7027010899621494",
+          "deliveryImage": null,
+          "orderNumber": null,
+          "handoverID": null,
+          "shippingService": {
+            "productCode": "PDO",
+            "productName": "Parcel Domestic"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "weight": "0",
+          "dimensionalWeight": null,
+          "weightUnit": "G",
+          "events": [
+            {
+              "status": "77123",
+              "description": "Shipment data received - Awaiting Parcel Handover to DHL",
+              "dateTime": "2024-01-09 22:04:06",
+              "timezone": "LT",
+              "address": {
+                "city": "Puchong",
+                "postCode": "47100",
+                "state": "Selangor",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "71005",
+              "description": "Data Submitted - Awaiting Parcel Handover to DHL",
+              "dateTime": "2024-01-09 22:03:16",
+              "timezone": "Malaysia",
+              "address": {
+                "city": "PUCHONG, SELANGOR",
+                "postCode": "47100",
+                "state": "SEL",
+                "country": "MY"
+              }
+            }
+          ],
+          "dimensions": {
+            "length": null,
+            "width": null,
+            "height": null
+          },
+          "dimensionsUnit": "CM"
+        },
+        {
+          "masterShipmentID": "ORD-10007TEST",
+          "shipmentID": "ORD-10007TEST-2",
+          "trackingID": "7027010899629294",
+          "deliveryImage": null,
+          "orderNumber": null,
+          "handoverID": null,
+          "shippingService": {
+            "productCode": "PDO",
+            "productName": "Parcel Domestic"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "weight": "0",
+          "dimensionalWeight": null,
+          "weightUnit": "G",
+          "events": [
+            {
+              "status": "77123",
+              "description": "Shipment data received - Awaiting Parcel Handover to DHL",
+              "dateTime": "2024-01-09 22:04:06",
+              "timezone": "LT",
+              "address": {
+                "city": "Puchong",
+                "postCode": "47100",
+                "state": "Selangor",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "71005",
+              "description": "Data Submitted - Awaiting Parcel Handover to DHL",
+              "dateTime": "2024-01-09 22:03:16",
+              "timezone": "Malaysia",
+              "address": {
+                "city": "PUCHONG, SELANGOR",
+                "postCode": "47100",
+                "state": "SEL",
+                "country": "MY"
+              }
+            }
+          ],
+          "dimensions": {
+            "length": null,
+            "width": null,
+            "height": null
+          },
+          "dimensionsUnit": "CM"
+        }
+      ],
+      "responseStatus": {
+        "code": "200",
+        "message": "SUCCESS",
+        "messageDetails": [
+          {
+            "messageDetail": "1 tracking reference(s) tracked, 2 tracking reference(s) found."
+          },
+          {
+            "messageDetail": "Electronic POD details will be available after the shipment(s) are delivered : ORD-10007TEST-2, ORD-10007TEST-1"
+          }
+        ]
+      }
+    }
+  }
+}

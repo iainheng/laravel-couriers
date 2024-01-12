@@ -46,4 +46,11 @@ return [
         'partner_id' => env('BESTEXPRESS_PARTNER_ID', ''),
         'partner_key' => env('BESTEXPRESS_PARTNER_KEY', ''),
     ],
+    'dhl-ecommerce' => [
+        'test_mode' => env('DHL_ECOMMERCE_TEST_MODE', false),
+        'client_id' => env('DHL_ECOMMERCE_CLIENT_ID', ''),
+        'password' => env('DHL_ECOMMERCE_PASSWORD', ''),
+        'account_soldto' => env('DHL_ECOMMERCE_SOLDTO_ACCOUNT', ''),
+        'account_pickup' => env('DHL_ECOMMERCE_PICKUP_ACCOUNT', ''),
+    ],
 ];
