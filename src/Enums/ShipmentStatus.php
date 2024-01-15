@@ -12,11 +12,14 @@ final class ShipmentStatus extends Enum
     const AcceptFailed = 'accept-failed';
     const Pickup = 'pickup';
     const PickupFailed = 'pickup-failed';
+    const ArrivedAtFacility = 'arrived-at-facility';
+    const ProcessingAtFacility = 'processing-at-facility';
     const InTransit = 'in-transit';
     const OutForDelivery = 'out-for-delivery';
     const Delivered = 'delivered';
     const Claim = 'claim';
     const Undelivered = 'undelivered';
+    const DeliveryRefused = 'delivery-refused';
     const ReturnStart = 'return-start';
     const Returned = 'returned';
     const OnHold = 'on-hold';
@@ -48,6 +51,12 @@ final class ShipmentStatus extends Enum
             case self::PickupFailed:
                 $name = 'Package is failed to be picked up';
                 break;
+            case self::ArrivedAtFacility:
+                $name = 'Package is arrived at facility';
+                break;
+            case self::ProcessingAtFacility:
+                $name = 'Package is processing at facility';
+                break;
             case self::InTransit:
                 $name = 'Parcel is in transit';
                 break;
@@ -56,6 +65,9 @@ final class ShipmentStatus extends Enum
                 break;
             case self::Delivered:
                 $name = 'Parcel has been delivered';
+                break;
+            case self::DeliveryRefused:
+                $name = 'Delivery was refused';
                 break;
             case self::ReturnStart:
                 $name = 'Package starts to return';

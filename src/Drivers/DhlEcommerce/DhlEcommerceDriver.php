@@ -247,6 +247,41 @@ class DhlEcommerceDriver extends Driver
         }
     }
 
+    /** @inheritDoc */
+    public function pushShipmentStatus(callable $callback, array $attributes = [])
+    {
+        // unserialize bizData if it is string
+        if (is_string(data_get($attributes, 'bizData')))
+            $attributes['bizData'] = json_decode(data_get($attributes, 'bizData'));
+
+        $orderNumber = data_get($attributes, 'bizData.txLogisticId');
+
+        try {
+            $pushStatus = $this->client->createShipmentStatusPush($attributes, function ($statusCode) {
+                return $this->normalizeShipmentStatus($statusCode);
+            });
+
+            /**@var $consignmentable Consignmentable */
+            $consignmentable = $callback($pushStatus);
+        } catch (\Exception $e) {
+            return response()->json([
+                'result' => false,
+                'remark' => $orderNumber,
+                'errorCode' => $e->getCode(),
+                'errorDescription' => $e->getMessage(),
+            ]);
+        }
+
+        $success = $consignmentable instanceof Consignmentable;
+
+        return response()->json([
+            'result' => $success,
+            'remark' => $consignmentable->getOrderNumber(),
+            'errorCode' => '',
+            'errorDescription' => ''
+        ]);
+    }
+
     /**
      * @inheritDoc
      */
@@ -287,10 +322,16 @@ class DhlEcommerceDriver extends Driver
                 return ShipmentStatus::AcceptFailed;
             case '77206':
                 return ShipmentStatus::Pickup;
-            case 'pickup_failure':
+            case '77429':
                 return ShipmentStatus::PickupFailed;
+            case '77013':
+            case '77178':
+                return ShipmentStatus::ArrivedAtFacility;
             case '77014':
             case '77015':
+            case '77027':
+            case '77184':
+                return ShipmentStatus::ProcessingAtFacility;
             case '77032':
             case '77052':
             case '77203':
@@ -303,6 +344,10 @@ class DhlEcommerceDriver extends Driver
                 return ShipmentStatus::OutForDelivery;
             case '77093':
                 return ShipmentStatus::Delivered;
+            case '77098':
+                return ShipmentStatus::DeliveryRefused;
+            case '77174':
+                return ShipmentStatus::Returned;
             default:
         }
 
