@@ -1,0 +1,46 @@
+{
+  "pushTrackItemRequest": {
+    "hdr": {
+      "messageType": "PUSHTRACKITEM",
+      "messageDateTime": "2022-03-17T15:14:01+08:00",
+      "messageVersion": "1.0",
+      "messageLanguage": "en"
+    },
+    "bd": {
+      "shipmentItems": [
+        {
+          "shipmentID": "TEST-SAMPLE-WEBHOOK1",
+          "trackingID": "7221099840797081",
+          "handoverID": "2",
+          "shippingService": {
+            "productCode": "PDO",
+            "productName": "Parcel Domestic"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "weight": "8888",
+          "dimensionalWeight": "11.2",
+          "weightUnit": "G",
+          "length": "25",
+          "width": "51",
+          "height": "51",
+          "dimensionUnit": "cm",
+          "trackingUrl": "https://ecommerceportal.dhl.com/track/?ref=TEST-SAMPLE-WEBHOOK1",
+          "events": [
+            {
+              "status": "77098",
+              "description": "Delivery was refused",
+              "dateTime": "2022-03-01T15:02:15",
+              "timezone": "GMT",
+              "address": {
+                "city": "Puchong",
+                "country": "MY"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

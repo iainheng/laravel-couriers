@@ -263,6 +263,38 @@ class DhlEcommerce
         return $response;
     }
 
+    public function createShipmentStatusPush($attributes = [], callable $statusCallback = null)
+    {
+//        if (!$this->validateRequestData($attributes))
+//            throw new AuthorizationException('You are not authorized to perform this action. Signature token is invalid.');
+        $pushDatetime = data_get($attributes, 'pushTrackItemRequest.hdr.messageDateTime');
+        $shipment = data_get($attributes, 'pushTrackItemRequest.bd.shipmentItems.0');
+
+        $orderNumber = data_get($shipment, 'shipmentID');
+        $trackingNumber = data_get($shipment, 'trackingID');
+        $events = collect(data_get($shipment, 'events', []));
+        $lastEvent = $events->first();
+
+        $status = data_get($lastEvent, 'status');
+
+        if ($statusCallback) {
+            $status = $statusCallback($status);
+        }
+
+        $pushStatus = ShipmentStatusPush::create([
+            'orderNumber' => $orderNumber,
+            'consignmentNumber' => $trackingNumber,
+            'status' => $status,
+            'description' => ShipmentStatus::getDescription($status),
+            'date' => Carbon::createFromTimestamp(strtotime(data_get($lastEvent, 'dateTime'))),
+            'currentCity' => data_get($lastEvent, 'address.city'),
+            'nextCity' => null,
+            'remarks' => data_get($lastEvent, 'description'),
+        ]);
+
+        return $pushStatus;
+    }
+
     /**
      * @param string $trackingNumber
      * @return TrackingItemResponse

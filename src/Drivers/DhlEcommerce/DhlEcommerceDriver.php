@@ -250,12 +250,6 @@ class DhlEcommerceDriver extends Driver
     /** @inheritDoc */
     public function pushShipmentStatus(callable $callback, array $attributes = [])
     {
-        // unserialize bizData if it is string
-        if (is_string(data_get($attributes, 'bizData')))
-            $attributes['bizData'] = json_decode(data_get($attributes, 'bizData'));
-
-        $orderNumber = data_get($attributes, 'bizData.txLogisticId');
-
         try {
             $pushStatus = $this->client->createShipmentStatusPush($attributes, function ($statusCode) {
                 return $this->normalizeShipmentStatus($statusCode);
@@ -263,23 +257,32 @@ class DhlEcommerceDriver extends Driver
 
             /**@var $consignmentable Consignmentable */
             $consignmentable = $callback($pushStatus);
+
+            $responseBody = [
+                'shipmentItems' => [
+                    [
+                        'shipmentID' => $pushStatus->getOrderNumber(),
+                        'trackingID' => $pushStatus->getConsignmentNumber(),
+                        'responseStatus' => [
+                            'code' => 200,
+                            'message' => 'SUCCESS',
+                            'messageDetail' => null
+                        ]
+                    ]
+                ]
+            ];
         } catch (\Exception $e) {
-            return response()->json([
-                'result' => false,
-                'remark' => $orderNumber,
-                'errorCode' => $e->getCode(),
-                'errorDescription' => $e->getMessage(),
+            data_set($responseBody, 'shipmentItems.0.responseStatus', [
+                'code' => 422,
+                'message' => 'ERROR',
+                'messageDetails' => [
+                    'messageDetail' => $e->getMessage(),
+                ]
             ]);
+//            return response()->json($this->getWebhookResponseData($responseBody));
         }
 
-        $success = $consignmentable instanceof Consignmentable;
-
-        return response()->json([
-            'result' => $success,
-            'remark' => $consignmentable->getOrderNumber(),
-            'errorCode' => '',
-            'errorDescription' => ''
-        ]);
+        return response()->json($this->getWebhookResponseData($responseBody));
     }
 
     /**
@@ -287,7 +290,19 @@ class DhlEcommerceDriver extends Driver
      */
     public function getConsignmentsLastShipment(array $consignmentNumbers)
     {
-        // TODO: Implement getConsignmentsLastShipment() method.
+        $data = collect();
+
+        foreach ($consignmentNumbers as $consignmentNumber) {
+            $response = $this->client->getShipmentStatusDetail($consignmentNumber)->toArray();
+
+            $rawShipments = collect(data_get($response, 'data.bd.shipmentItems.0.events', []));
+
+            $data->put($consignmentNumber, $rawShipments->map(function ($data) {
+                return $this->createShipmentFromResponse($data);
+            }));
+        }
+
+        return $data;
     }
 
     /**
@@ -299,7 +314,7 @@ class DhlEcommerceDriver extends Driver
         $status = $this->normalizeShipmentStatus(data_get($data, 'status'));
 
         return Shipment::create([
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'pushTime'))),
+            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'dateTime'))),
             'origin' => data_get($data, 'address.city'),
             'destination' => data_get($data, 'address.city'),
             'location' => data_get($data, 'address.city'),
@@ -352,6 +367,31 @@ class DhlEcommerceDriver extends Driver
         }
 
         return ShipmentStatus::Unknown;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getWebhookResponseData($body = [])
+    {
+        return [
+            'pushTrackingResponse' => [
+                'hdr' => [
+                    'messageType' => 'PUSHTRACKITEM',
+                    'messageDateTime' => now()->toIso8601String(),
+                    'messageVersion' => '1.0',
+                    'messageLanguage' => 'en',
+                ],
+                'bd' => $body,
+                'responseStatus' => [
+                    'code' => 200,
+                    'message' => 'SUCCESS',
+                    'messageDetails' => [
+                        'messageDetail' => null,
+                    ]
+                ]
+            ]
+        ];
     }
 
     /**

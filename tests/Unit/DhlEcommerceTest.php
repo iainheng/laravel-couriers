@@ -13,7 +13,7 @@ use Nextbyte\Tests\Courier\TestCase;
 
 class DhlEcommerceTest extends TestCase
 {
-    protected $driverName = 'DhlEcommerce';
+    protected $driverName = 'dhl-ecommerce';
 
     protected $accessToken = [];
 
@@ -22,8 +22,8 @@ class DhlEcommerceTest extends TestCase
         parent::setUp();
 
         $this->accessToken = [
-            'token' => 'f71818256b094213a36dcd27d207fef5',
-            'expires' => Carbon::now()->addSeconds(60451),
+            'token' => 'b076b37f0cef4dff888b5196a8c09cc7',
+            'expires' => Carbon::now()->addSeconds(56184),
         ];
     }
 
@@ -137,11 +137,11 @@ class DhlEcommerceTest extends TestCase
     public function test_it_can_push_update_order_shipment_status()
     {
         /**@var $courier DhlEcommerceDriver */
-        $courier = $this->makeDriver($this->driverName);
+        $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         $order = new DhlEcommerceOrder('ORD-10002TEST', 'Jane Doe');
 
-        $pushData = json_decode(file_get_contents('../Fixtures/data/best-express/shipment_push_request.json'),
+        $pushData = json_decode(file_get_contents('../Fixtures/data/dhl-ecommerce/shipment_push_request.json'),
             true);
 
         $response = $courier->pushShipmentStatus(function (ShipmentStatusPush $push) use ($order) {
@@ -151,30 +151,10 @@ class DhlEcommerceTest extends TestCase
 
         dump($response->content());
 
-        $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(true, data_get(json_decode($response->content()), 'result'));
-        $this->assertEquals(ShipmentStatus::Accepted, $order->getShipmentStatus());
-    }
-
-    public function test_it_can_push_update_order_shipment_status_with_raw_request()
-    {
-        /**@var $courier DhlEcommerceDriver */
-        $courier = $this->makeDriver($this->driverName);
-
-        $order = new DhlEcommerceOrder('ORD-10002TEST', 'Jane Doe');
-
-        $pushData = json_decode(file_get_contents('../Fixtures/data/best-express/raw_shipment_push_request.json'),
-            true);
-
-        $response = $courier->pushShipmentStatus(function (ShipmentStatusPush $push) use ($order) {
-            $order->setShipmentStatus($push->getStatus());
-            return $order;
-        }, $pushData);
-
-        dump($response->content());
+        $json = json_decode($response->content());
 
         $this->assertInstanceOf(JsonResponse::class, $response);
-        $this->assertEquals(true, data_get(json_decode($response->content()), 'result'));
-        $this->assertEquals(ShipmentStatus::OutForDelivery, $order->getShipmentStatus());
+        $this->assertEquals(200, data_get($json,'pushTrackingResponse.bd.shipmentItems.0.responseStatus.code'));
+        $this->assertEquals(ShipmentStatus::DeliveryRefused, $order->getShipmentStatus());
     }
 }
