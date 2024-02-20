@@ -193,6 +193,8 @@ class DhlEcommerce
 //                $options['json'] = $parameters;
 //            }
 
+            $this->debug(json_encode($postData));
+
             $res = $this->client->post($url, $options);
             $result = json_decode($res->getBody(), true);
 
