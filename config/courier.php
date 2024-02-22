@@ -52,5 +52,6 @@ return [
         'password' => env('DHL_ECOMMERCE_PASSWORD', ''),
         'account_soldto' => env('DHL_ECOMMERCE_SOLDTO_ACCOUNT', ''),
         'account_pickup' => env('DHL_ECOMMERCE_PICKUP_ACCOUNT', ''),
+        'shipment_prefix' => env('DHL_ECOMMERCE_SHIPMENT_PREFIX', ''),
     ],
 ];
