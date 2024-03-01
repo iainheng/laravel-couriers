@@ -4,6 +4,7 @@ namespace Nextbyte\Tests\Courier\Unit;
 
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Storage;
 use Mockery as m;
 use Nextbyte\Courier\Drivers\DhlEcommerce\DhlEcommerceDriver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
@@ -22,7 +23,7 @@ class DhlEcommerceTest extends TestCase
         parent::setUp();
 
         $this->accessToken = [
-            'token' => 'b076b37f0cef4dff888b5196a8c09cc7',
+            'token' => '1bfccb24e6334891a8d6709b1d87c9f9',
             'expires' => Carbon::now()->addSeconds(56184),
         ];
     }
@@ -71,6 +72,11 @@ class DhlEcommerceTest extends TestCase
 
         $consignment = $courier->createConsignmentWithSlip($order->toConsignmentableArray('dhl-ecommerce'));
 
+        // save consignment waybill/slip to disk if available
+//        if (!empty($consignment->slip)) {
+//            file_put_contents($consignment->slip->getName(), $consignment->slip->getBody());
+//        }
+
         $this->assertObjectHasAttribute('number', $consignment);
 
         $consignmentFile = data_get($consignment, 'slip');
@@ -95,13 +101,18 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $order = new DhlEcommerceOrder('ORD-10013TEST', 'Jane Doe');
+        $order = new DhlEcommerceOrder('MYLILORD-10021TEST', 'Jane Doe');
 
         $order->set('bd.shipmentItems.0.shipmentPieces', array_merge($order->get('bd.shipmentItems.0.shipmentPieces'), [
                 ['pieceID' => 2]
             ]))->set('bd.shipmentItems.0.isMult', 'true');
 
         $consignment = $courier->createConsignmentWithSlip($order->toConsignmentableArray('dhl-ecommerce'));
+
+//        // save consignment waybill/slip to disk if available
+//        if (!empty($consignment->slip)) {
+//            file_put_contents($consignment->slip->getName(), $consignment->slip->getBody());
+//        }
 
         $this->assertEquals('zip', $consignment->slip->getExtension());
         $this->assertNotEmpty($consignment->slip->getBody());

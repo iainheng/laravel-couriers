@@ -11,7 +11,11 @@ class LabelResponse extends DhlEcommerceResponse
     {
         parent::__construct($data);
 
-        $responseStatus = data_get($this->data, 'bd.labels.0.responseStatus');
+        $responseStatus = data_get($this->data, 'bd.responseStatus');
+
+        if (!in_array(data_get($responseStatus, 'code'), ['202'])) {
+            $responseStatus = data_get($this->data, 'bd.labels.0.responseStatus');
+        }
 
         $this->parseResponseStatus($responseStatus);
     }

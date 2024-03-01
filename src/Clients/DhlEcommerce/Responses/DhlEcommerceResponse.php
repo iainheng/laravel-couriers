@@ -66,7 +66,7 @@ class DhlEcommerceResponse
         return implode(',', $this->messageDetails);
     }
 
-    public function getStatusCode() : string
+    public function getStatusCode() : ?string
     {
         return $this->statusCode;
     }

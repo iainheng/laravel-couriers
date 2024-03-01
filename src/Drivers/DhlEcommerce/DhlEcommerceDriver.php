@@ -149,14 +149,16 @@ class DhlEcommerceDriver extends Driver
         $consignmentNo = data_get($label, 'deliveryConfirmationNo');
 
         if (count($pieces) > 1) {
-            $filename = "$consignmentNo.zip";
-
             $zip = new \PhpZip\ZipFile();
 
+            $consignmentNo = data_get($label, 'shipmentID');
+            $filename = "$consignmentNo.zip";
+
             foreach ($pieces as $i => $piece) {
+                $deliveryConfirmationNo = data_get($piece, 'deliveryConfirmationNo');
                 $pieceId = data_get($piece, 'shipmentPieceID');
 
-                $zip->addFromString("$consignmentNo-$pieceId.pdf", base64_decode($piece['content']));
+                $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
             }
 
             $zipContent = $zip->outputAsString();
@@ -211,18 +213,21 @@ class DhlEcommerceDriver extends Driver
             throw new CourierException(data_get($response, 'message', 'Unknown create consignment error.'));
         }
 
-        $consignmentNo = data_get($response, 'bd.shipmentItems.0.deliveryConfirmationNo');
+        $consignmentNo = data_get($response, 'data.bd.shipmentItems.0.deliveryConfirmationNo', data_get($response, 'data.bd.shipmentItems.0.shipmentID'));
         $pieces = data_get($response, 'data.bd.shipmentItems', []);
 
         if (count($pieces) > 1) {
+            $consignmentNo = data_get($response, 'data.bd.shipmentItems.0.shipmentID');
+
             $filename = "$consignmentNo.zip";
 
             $zip = new \PhpZip\ZipFile();
 
             foreach ($pieces as $i => $piece) {
-                $shipmentPieceId = data_get($piece, 'shipmentID');
+                $deliveryConfirmationNo = data_get($piece, 'deliveryConfirmationNo');
+                $pieceId = data_get($piece, 'shipmentPieceID');
 
-                $zip->addFromString("$shipmentPieceId.png", base64_decode($piece['content']));
+                $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
             }
 
             $zipContent = $zip->outputAsString();
@@ -239,7 +244,7 @@ class DhlEcommerceDriver extends Driver
             $shipmentPieceId = data_get($shipmentPiece, 'shipmentID');
 
             return ConsignmentFile::create([
-                'name' => "$shipmentPieceId.png",
+                'name' => "$consignmentNo.png",
                 'extension' => 'png',
                 'body' => base64_decode(data_get($shipmentPiece, 'content')),
                 'response' => $response,
