@@ -15,12 +15,14 @@ final class ShipmentStatus extends Enum
     const ArrivedAtFacility = 'arrived-at-facility';
     const ProcessingAtFacility = 'processing-at-facility';
     const InTransit = 'in-transit';
+    const HandoverToVendor = 'handover-to-vendor';
     const OutForDelivery = 'out-for-delivery';
     const Delivered = 'delivered';
     const Claim = 'claim';
     const Undelivered = 'undelivered';
     const DeliveryRefused = 'delivery-refused';
     const DeliveryAttempted = 'delivery-attempted';
+    const DeliveryAwaiting = 'awaiting-delivery';
     const ReturnStart = 'return-start';
     const Returned = 'returned';
     const OnHold = 'on-hold';

@@ -66,7 +66,7 @@ class DhlEcommerceDriver extends Driver
             return $this->createShipmentFromResponse($data);
         });
 
-        $this->debug($shipments);
+//        $this->debug($shipments);
 
         $description = $shipments->first() ? $shipments->first()->getDescription() : '';
 
@@ -332,7 +332,7 @@ class DhlEcommerceDriver extends Driver
             'destination' => data_get($data, 'address.city'),
             'location' => data_get($data, 'address.city'),
             'status' => $status,
-            'description' => ShipmentStatus::getDescription($status)
+            'description' => data_get($data, 'description', ShipmentStatus::getDescription($status))
         ]);
     }
 
@@ -354,6 +354,7 @@ class DhlEcommerceDriver extends Driver
                 return ShipmentStatus::PickupFailed;
             case '77013':
             case '77178':
+            case '77169':
                 return ShipmentStatus::ArrivedAtFacility;
             case '77014':
             case '77015':
@@ -370,12 +371,16 @@ class DhlEcommerceDriver extends Driver
             case '77057':
             case '77201':
                 return ShipmentStatus::InTransit;
+            case '77710':
+                return ShipmentStatus::HandoverToVendor;
             case '77090':
                 return ShipmentStatus::OutForDelivery;
             case '77093':
                 return ShipmentStatus::Delivered;
             case '77098':
                 return ShipmentStatus::DeliveryRefused;
+            case '77696':
+                return ShipmentStatus::DeliveryAwaiting;
             case '77174':
                 return ShipmentStatus::Returned;
             default:

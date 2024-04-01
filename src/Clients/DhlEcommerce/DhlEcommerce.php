@@ -287,7 +287,7 @@ class DhlEcommerce
             'orderNumber' => $orderNumber,
             'consignmentNumber' => $trackingNumber,
             'status' => $status,
-            'description' => ShipmentStatus::getDescription($status),
+            'description' => data_get($lastEvent, 'description', ShipmentStatus::getDescription($status)),
             'date' => Carbon::createFromTimestamp(strtotime(data_get($lastEvent, 'dateTime'))),
             'currentCity' => data_get($lastEvent, 'address.city'),
             'nextCity' => null,
