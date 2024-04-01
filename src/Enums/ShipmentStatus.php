@@ -20,6 +20,7 @@ final class ShipmentStatus extends Enum
     const Claim = 'claim';
     const Undelivered = 'undelivered';
     const DeliveryRefused = 'delivery-refused';
+    const DeliveryAttempted = 'delivery-attempted';
     const ReturnStart = 'return-start';
     const Returned = 'returned';
     const OnHold = 'on-hold';
@@ -68,6 +69,9 @@ final class ShipmentStatus extends Enum
                 break;
             case self::DeliveryRefused:
                 $name = 'Delivery was refused';
+                break;
+            case self::DeliveryAttempted:
+                $name = 'Delivery was attempted';
                 break;
             case self::ReturnStart:
                 $name = 'Package starts to return';

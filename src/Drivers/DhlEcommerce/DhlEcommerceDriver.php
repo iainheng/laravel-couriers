@@ -135,7 +135,7 @@ class DhlEcommerceDriver extends Driver
                 'orderNumber' => $orderNumber,
                 'number' => $consignmentNo,
                 'slip' => $slip,
-                ]);
+            ]);
         }
 
         $response = $response->toArray();
@@ -260,8 +260,15 @@ class DhlEcommerceDriver extends Driver
                 return $this->normalizeShipmentStatus($statusCode);
             });
 
+            // remove prefix to locate order in callback
+            $originalOrderNumber = $pushStatus->getOrderNumber();
+            $pushStatus->setOrderNumber(str_replace(config('courier.dhl-ecommerce.shipment_prefix'), '', $pushStatus->getOrderNumber()));
+
             /**@var $consignmentable Consignmentable */
             $consignmentable = $callback($pushStatus);
+
+            // revert order number for response
+            $pushStatus->setOrderNumber($originalOrderNumber);
 
             $responseBody = [
                 'shipmentItems' => [
@@ -352,6 +359,8 @@ class DhlEcommerceDriver extends Driver
             case '77027':
             case '77184':
                 return ShipmentStatus::ProcessingAtFacility;
+            case '77101':
+                return ShipmentStatus::DeliveryAttempted;
             case '77032':
             case '77052':
             case '77203':
