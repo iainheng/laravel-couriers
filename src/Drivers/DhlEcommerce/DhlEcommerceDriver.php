@@ -78,8 +78,9 @@ class DhlEcommerceDriver extends Driver
             'shipments' => $shipments,
             'rawShipments' => $rawShipments,
             'statusCode' => data_get($response, 'code'),
-            'status' => $shipments->last()->getStatus(),
+            'status' => $shipments->first()->getStatus(),
             'description' => $description,
+            'updatedAt' => $shipments->first()->getDate(),
         ];
 
         return Consignment::create($attributes);
