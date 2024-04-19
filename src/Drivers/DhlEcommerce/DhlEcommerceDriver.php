@@ -130,11 +130,11 @@ class DhlEcommerceDriver extends Driver
         if ($response->isShipmentIdExists()) {
             $slip = $this->reprintConsignmentSlip($attributes);
 
-            $consignmentNo = $orderNumber;
+            $trackingNumber = $orderNumber;
 
             return Consignment::create([
                 'orderNumber' => $orderNumber,
-                'number' => $consignmentNo,
+                'number' => $trackingNumber,
                 'slip' => $slip,
             ]);
         }
@@ -147,26 +147,31 @@ class DhlEcommerceDriver extends Driver
 
         $label = Arr::first(data_get($response, 'data.bd.labels', []));
         $pieces = data_get($label, 'pieces', []);
-        $consignmentNo = data_get($label, 'deliveryConfirmationNo');
+        $trackingNumber = data_get($label, 'deliveryConfirmationNo');
 
         if (count($pieces) > 1) {
             $zip = new \PhpZip\ZipFile();
 
-            $consignmentNo = data_get($label, 'shipmentID');
-            $filename = "$consignmentNo.zip";
+            $filename = "$orderNumber.zip";
+            $trackingNumbers = [];
 
             foreach ($pieces as $i => $piece) {
                 $deliveryConfirmationNo = data_get($piece, 'deliveryConfirmationNo');
                 $pieceId = data_get($piece, 'shipmentPieceID');
+
+                $trackingNumbers[] = $deliveryConfirmationNo;
 
                 $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
             }
 
             $zipContent = $zip->outputAsString();
 
+            $trackingNumber = Arr::first($trackingNumbers); //data_get($label, 'shipmentID');
+
             return Consignment::create([
                 'orderNumber' => $orderNumber,
-                'number' => $consignmentNo,
+                'number' => $trackingNumber,
+                'trackingNumbers' => $trackingNumbers,
                 'slip' => ConsignmentFile::create([
                     'name' => $filename,
                     'extension' => 'zip',
@@ -177,9 +182,10 @@ class DhlEcommerceDriver extends Driver
         } else {
             return Consignment::create([
                 'orderNumber' => $orderNumber,
-                'number' => $consignmentNo,
+                'number' => $trackingNumber,
+                'trackingNumbers' => [$trackingNumber],
                 'slip' => ConsignmentFile::create([
-                    'name' => "$consignmentNo.png",
+                    'name' => "$trackingNumber.png",
                     'extension' => 'png',
                     'body' => base64_decode(data_get($label, 'content')),
                     'response' => $response,

@@ -15,6 +15,13 @@ class Consignment
     public $number;
 
     /**
+     * The tracking number in multi pieces shipment
+     *
+     * @var array
+     */
+    public $trackingNumbers = [];
+
+    /**
      * @var string
      */
     public $orderNumber;

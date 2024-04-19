@@ -3,6 +3,7 @@
 namespace Nextbyte\Courier\Drivers\BestExpress;
 
 use Carbon\Carbon;
+use Illuminate\Support\Arr;
 use Nextbyte\Courier\Clients\BestExpress\BestExpress;
 use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
@@ -150,19 +151,25 @@ class BestExpressDriver extends Driver
         $childMailNos = data_get($response, 'childMailNo.mailNo');
 
         if (!empty($childMailNos)) {
+            $trackingNumbers = [];
             $filename = "$consignmentNo.zip";
 
             $zip = new \PhpZip\ZipFile();
 
             foreach ($childMailNos as $i => $childMailNo) {
+                $trackingNumbers[] = $childMailNo;
+
                 $zip->addFromString("$childMailNo.pdf", base64_decode(data_get($response, 'pdfStreamList.'. $i)));
             }
 
             $zipContent = $zip->outputAsString();
 
+            $trackingNumber = Arr::first($trackingNumbers); //data_get($label, 'shipmentID');
+
             return Consignment::create([
                 'orderNumber' =>  data_get($response, 'txLogisticId'),
                 'number' => $consignmentNo,
+                'trackingNumbers' => $trackingNumbers,
                 'slip' => ConsignmentFile::create([
                     'name' => $filename,
                     'extension' => 'zip',

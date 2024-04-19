@@ -1,0 +1,41 @@
+{
+  "pushTrackItemRequest": {
+    "hdr": {
+      "messageType": "PUSHTRACKITEM",
+      "messageDateTime": "2024-04-06T18:14:39+08:00",
+      "messageVersion": "1.0",
+      "messageLanguage": "en"
+    },
+    "bd": {
+      "shipmentItems": [
+        {
+          "shipmentID": "MYLIL06154-12-2",
+          "trackingID": "7028049844104464",
+          "shippingService": {
+            "productCode": "PDO",
+            "productName": "Parcel Domestic"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "dimensionUnit": "cm",
+          "trackingURL": "https://ecommerceportal.dhl.com/track/?ref=MYLIL06154-12-2",
+          "events": [
+            {
+              "status": "77123",
+              "description": "Shipment data received",
+              "dateTime": "2024-04-06T17:14:39",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuala Lumpur Hub",
+                "postCode": "47100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
