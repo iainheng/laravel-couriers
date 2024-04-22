@@ -1,0 +1,196 @@
+{
+  "trackItemResponse": {
+    "hdr": {
+      "messageType": "TRACKITEM",
+      "messageDateTime": "2024-04-01T21:51:50+08:00",
+      "messageVersion": "1.0"
+    },
+    "bd": {
+      "shipmentItems": [
+        {
+          "masterShipmentID": null,
+          "shipmentID": "MYLIL05730-01",
+          "trackingID": "7228038086003024",
+          "recipientName": "zakwan",
+          "recipientSignature": "\/9j\/4AAQSkZJRgABAQAAAQABAAD\/4gIoSU...",
+          "deliveryImage": "https:\/\/d366mt3p3gwrs.cloudfront.net\/images\/7228038086003024_216307532_optimage1_vsO3BdRpryfs7BycIGyNE2Xi0aTfeFR7B106aSwygoDpyfHPfy_BkcrgiMmYZn2M.jpg?20240327085453",
+          "orderNumber": null,
+          "handoverID": null,
+          "shippingService": {
+            "productCode": "PDO",
+            "productName": "Parcel Domestic"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "weight": "1890",
+          "dimensionalWeight": "0",
+          "weightUnit": "G",
+          "events": [
+            {
+              "status": "77093",
+              "description": "Successfully delivered",
+              "dateTime": "2024-03-27 16:54:51",
+              "timezone": "LT",
+              "address": {
+                "city": "Butterworth",
+                "postCode": "13200",
+                "state": "Penang",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77090",
+              "description": "Out for Delivery",
+              "dateTime": "2024-03-27 11:36:26",
+              "timezone": "LT",
+              "address": {
+                "city": "Butterworth",
+                "postCode": "13200",
+                "state": "Penang",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77184",
+              "description": "Processed at delivery facility",
+              "dateTime": "2024-03-27 09:16:33",
+              "timezone": "LT",
+              "address": {
+                "city": "Butterworth",
+                "postCode": "13700",
+                "state": "Penang",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77178",
+              "description": "Arrived at facility",
+              "dateTime": "2024-03-27 08:07:53",
+              "timezone": "LT",
+              "address": {
+                "city": "Butterworth",
+                "postCode": "13700",
+                "state": "Penang",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77169",
+              "description": "Departed from facility",
+              "dateTime": "2024-03-27 04:20:39",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuala Lumpur Hub",
+                "postCode": "47100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77027",
+              "description": "Sorted to delivery facility",
+              "dateTime": "2024-03-26 23:34:22",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuala Lumpur Hub",
+                "postCode": "47100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77015",
+              "description": "Processed at facility",
+              "dateTime": "2024-03-26 23:30:16",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuala Lumpur Hub",
+                "postCode": "47100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77013",
+              "description": "Arrival at Facility",
+              "dateTime": "2024-03-26 21:58:29",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuala Lumpur Hub",
+                "postCode": "47100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77206",
+              "description": "Shipment picked up",
+              "dateTime": "2024-03-26 16:03:29",
+              "timezone": "LT",
+              "address": {
+                "city": "Puchong",
+                "postCode": "43000",
+                "state": "SEL",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77429",
+              "description": "Shipment picked up failed",
+              "secondaryStatus": "77443",
+              "secondaryEvent": "Insufficient pickup address",
+              "dateTime": "2024-03-23 14:02:31",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuchai Lama",
+                "postCode": "57000",
+                "state": null,
+                "country": "MY"
+              }
+            },
+            {
+              "status": "77123",
+              "description": "Shipment data received - Awaiting Parcel Handover to DHL",
+              "dateTime": "2024-03-22 12:14:52",
+              "timezone": "LT",
+              "address": {
+                "city": "Kuala Lumpur Hub",
+                "postCode": "47100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            },
+            {
+              "status": "71005",
+              "description": "Data Submitted - Awaiting Parcel Handover to DHL",
+              "dateTime": "2024-03-22 12:14:19",
+              "timezone": "Malaysia",
+              "address": {
+                "city": "BALAKONG, SELANGOR",
+                "postCode": "43000",
+                "state": "SEL",
+                "country": "MY"
+              }
+            }
+          ],
+          "dimensions": {
+            "length": 47.9,
+            "width": 45,
+            "height": 11.7
+          },
+          "dimensionsUnit": "CM"
+        }
+      ],
+      "responseStatus": {
+        "code": "200",
+        "message": "SUCCESS",
+        "messageDetails": [
+          {
+            "messageDetail": "1 tracking reference(s) tracked, 1 tracking reference(s) found."
+          }
+        ]
+      }
+    }
+  }
+}
