@@ -152,6 +152,8 @@ class BestExpressDriver extends Driver
 
         if (!empty($childMailNos)) {
             $trackingNumbers = [];
+            $slips = [];
+
             $filename = "$consignmentNo.zip";
 
             $zip = new \PhpZip\ZipFile();
@@ -160,6 +162,12 @@ class BestExpressDriver extends Driver
                 $trackingNumbers[] = $childMailNo;
 
                 $zip->addFromString("$childMailNo.pdf", base64_decode(data_get($response, 'pdfStreamList.'. $i)));
+                $slips[$childMailNo] = ConsignmentFile::create([
+                    'name' => "$childMailNo.pdf",
+                    'extension' => 'pdf',
+                    'body' => base64_decode(data_get($response, 'pdfStreamList.'. $i)),
+                    'response' => $response,
+                ]);
             }
 
             $zipContent = $zip->outputAsString();
@@ -175,7 +183,8 @@ class BestExpressDriver extends Driver
                     'extension' => 'zip',
                     'body' => $zipContent,
                     'response' => $response,
-                ])
+                ]),
+                'slips' => $slips,
             ]);
         } else {
             return Consignment::create([
@@ -186,7 +195,15 @@ class BestExpressDriver extends Driver
                     'extension' => 'pdf',
                     'body' => base64_decode(data_get($response, 'pdfStream')),
                     'response' => $response,
-                ])
+                ]),
+                'slips' => [
+                    $consignmentNo => ConsignmentFile::create([
+                        'name' => "$consignmentNo.pdf",
+                        'extension' => 'pdf',
+                        'body' => base64_decode(data_get($response, 'pdfStream')),
+                        'response' => $response,
+                    ])
+                ]
             ]);
         }
     }
@@ -206,7 +223,17 @@ class BestExpressDriver extends Driver
     {
         $consignment = $this->createConsignmentWithSlip($consignmentable->getQueryConsignmentSlipAttributes($this->courierName));
 
-        return $consignment->slip;
+        return Arr::first($consignment->slips);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConsignmentableSlips(Consignmentable $consignmentable)
+    {
+        $consignment = $this->createConsignmentWithSlip($consignmentable->getQueryConsignmentSlipAttributes($this->courierName));
+
+        return $consignment->slips;
     }
 
     /**

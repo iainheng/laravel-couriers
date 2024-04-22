@@ -128,14 +128,20 @@ class DhlEcommerceDriver extends Driver
         // if consignment is created before, DHL doesn't allow to create a new one with same shipmentId.
         // Use reprint label endpoint to retrieve label slip.
         if ($response->isShipmentIdExists()) {
-            $slip = $this->reprintConsignmentSlip($attributes);
+            $slips = $this->reprintConsignmentSlips($attributes);
 
-            $trackingNumber = $orderNumber;
+//            $response = $response->toArray();
+//
+//            $label = Arr::first(data_get($response, 'data.bd.labels', []));
+//            $trackingNumber = data_get($label, 'deliveryConfirmationNo');
+
+            $trackingNumbers = array_keys($slips);
 
             return Consignment::create([
                 'orderNumber' => $orderNumber,
-                'number' => $trackingNumber,
-                'slip' => $slip,
+                'number' => Arr::first($trackingNumbers),
+                'trackingNumbers' => $trackingNumbers,
+                'slips' => $slips,
             ]);
         }
 
@@ -150,10 +156,11 @@ class DhlEcommerceDriver extends Driver
         $trackingNumber = data_get($label, 'deliveryConfirmationNo');
 
         if (count($pieces) > 1) {
-            $zip = new \PhpZip\ZipFile();
+//            $zip = new \PhpZip\ZipFile();
 
             $filename = "$orderNumber.zip";
             $trackingNumbers = [];
+            $slips = [];
 
             foreach ($pieces as $i => $piece) {
                 $deliveryConfirmationNo = data_get($piece, 'deliveryConfirmationNo');
@@ -161,10 +168,16 @@ class DhlEcommerceDriver extends Driver
 
                 $trackingNumbers[] = $deliveryConfirmationNo;
 
-                $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
+//                $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
+                $slips[$deliveryConfirmationNo] = ConsignmentFile::create([
+                    'name' => "$deliveryConfirmationNo.png",
+                    'extension' => 'png',
+                    'body' => base64_decode($piece['content']),
+                    'response' => $response,
+                ]);
             }
 
-            $zipContent = $zip->outputAsString();
+//            $zipContent = $zip->outputAsString();
 
             $trackingNumber = Arr::first($trackingNumbers); //data_get($label, 'shipmentID');
 
@@ -172,24 +185,27 @@ class DhlEcommerceDriver extends Driver
                 'orderNumber' => $orderNumber,
                 'number' => $trackingNumber,
                 'trackingNumbers' => $trackingNumbers,
-                'slip' => ConsignmentFile::create([
-                    'name' => $filename,
-                    'extension' => 'zip',
-                    'body' => $zipContent,
-                    'response' => $response,
-                ])
+//                'slip' => ConsignmentFile::create([
+//                    'name' => $filename,
+//                    'extension' => 'zip',
+////                    'body' => $zipContent,
+//                    'response' => $response,
+//                ])
+                'slips' => $slips,
             ]);
         } else {
             return Consignment::create([
                 'orderNumber' => $orderNumber,
                 'number' => $trackingNumber,
                 'trackingNumbers' => [$trackingNumber],
-                'slip' => ConsignmentFile::create([
-                    'name' => "$trackingNumber.png",
-                    'extension' => 'png',
-                    'body' => base64_decode(data_get($label, 'content')),
-                    'response' => $response,
-                ])
+                'slips' => [
+                    $trackingNumber => ConsignmentFile::create([
+                        'name' => "$trackingNumber.png",
+                        'extension' => 'png',
+                        'body' => base64_decode(data_get($label, 'content')),
+                        'response' => $response,
+                    ])
+                ]
             ]);
         }
     }
@@ -201,16 +217,26 @@ class DhlEcommerceDriver extends Driver
     {
         $payload = $consignmentable->getQueryConsignmentSlipAttributes($this->courierName);
 
-        return $this->reprintConsignmentSlip($payload);
+        return Arr::first($this->reprintConsignmentSlips($payload));
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getConsignmentableSlips(Consignmentable $consignmentable)
+    {
+        $payload = $consignmentable->getQueryConsignmentSlipAttributes($this->courierName);
+
+        return $this->reprintConsignmentSlips($payload);
     }
 
     /**
      * @param array $payload
-     * @return ConsignmentFile
+     * @return ConsignmentFile[]
      * @throws \GuzzleHttp\Exception\GuzzleException
      * @throws \PhpZip\Exception\ZipException
      */
-    protected function reprintConsignmentSlip(array $payload)
+    protected function reprintConsignmentSlips(array $payload)
     {
         $shipmentId = data_get($payload, 'bd.shipmentItems.0.shipmentID');
 
@@ -222,40 +248,50 @@ class DhlEcommerceDriver extends Driver
 
         $consignmentNo = data_get($response, 'data.bd.shipmentItems.0.deliveryConfirmationNo', data_get($response, 'data.bd.shipmentItems.0.shipmentID'));
         $pieces = data_get($response, 'data.bd.shipmentItems', []);
+        $slips = [];
 
         if (count($pieces) > 1) {
-            $consignmentNo = data_get($response, 'data.bd.shipmentItems.0.shipmentID');
-
-            $filename = "$consignmentNo.zip";
-
-            $zip = new \PhpZip\ZipFile();
+//            $consignmentNo = data_get($response, 'data.bd.shipmentItems.0.shipmentID');
+//
+//            $filename = "$consignmentNo.zip";
+//
+//            $zip = new \PhpZip\ZipFile();
 
             foreach ($pieces as $i => $piece) {
                 $deliveryConfirmationNo = data_get($piece, 'deliveryConfirmationNo');
                 $pieceId = data_get($piece, 'shipmentPieceID');
 
-                $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
+//                $zip->addFromString("$deliveryConfirmationNo.png", base64_decode($piece['content']));
+                $slips[$deliveryConfirmationNo] = ConsignmentFile::create([
+                    'name' => "$deliveryConfirmationNo.png",
+                    'extension' => 'png',
+                    'body' => base64_decode($piece['content']),
+                    'response' => $response,
+                ]);
             }
 
-            $zipContent = $zip->outputAsString();
-
-            return ConsignmentFile::create([
-                'name' => $filename,
-                'extension' => 'zip',
-                'body' => $zipContent,
-                'response' => $response,
-            ]);
+//            $zipContent = $zip->outputAsString();
+//
+//            return ConsignmentFile::create([
+//                'name' => $filename,
+//                'extension' => 'zip',
+//                'body' => $zipContent,
+//                'response' => $response,
+//            ]);
+            return $slips;
         } else {
             $shipmentPiece = Arr::first($pieces);
 
             $shipmentPieceId = data_get($shipmentPiece, 'shipmentID');
 
-            return ConsignmentFile::create([
-                'name' => "$consignmentNo.png",
-                'extension' => 'png',
-                'body' => base64_decode(data_get($shipmentPiece, 'content')),
-                'response' => $response,
-            ]);
+            return [
+                $consignmentNo => ConsignmentFile::create([
+                    'name' => "$consignmentNo.png",
+                    'extension' => 'png',
+                    'body' => base64_decode(data_get($shipmentPiece, 'content')),
+                    'response' => $response,
+                ])
+            ];
         }
     }
 

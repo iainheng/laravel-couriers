@@ -4,6 +4,7 @@ namespace Nextbyte\Tests\Courier\Unit;
 
 use Carbon\Carbon;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Mockery as m;
 use Nextbyte\Courier\Drivers\DhlEcommerce\DhlEcommerceDriver;
@@ -23,7 +24,7 @@ class DhlEcommerceTest extends TestCase
         parent::setUp();
 
         $this->accessToken = [
-            'token' => '09ab0354b0f64d21b6a88dab17d83c88',
+            'token' => '3251effd94554a7b9ed387cc7d667339',
             'expires' => Carbon::now()->addSeconds(56184),
         ];
     }
@@ -79,9 +80,8 @@ class DhlEcommerceTest extends TestCase
 
         $this->assertObjectHasAttribute('number', $consignment);
 
-        $consignmentFile = data_get($consignment, 'slip');
+        $consignmentFile = Arr::first(data_get($consignment, 'slips', []));
 
-        dump($consignment->trackingNumbers);
         $this->assertEquals('png', $consignmentFile->getExtension());
         $this->assertNotEmpty($consignmentFile->getBody());
         $this->assertCount(1, $consignment->trackingNumbers);
@@ -91,9 +91,11 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $order = new DhlEcommerceOrder('ORD-10002TEST', 'Jane Doe');
+        $order = new DhlEcommerceOrder('ORD-10030TEST', 'Jane Doe');
 
-        $consignmentFile = $courier->getConsignmentableSlip($order);
+        $consignmentFiles = $courier->getConsignmentableSlips($order);
+
+        $consignmentFile = Arr::first($consignmentFiles);
 
         $this->assertEquals('png', $consignmentFile->getExtension());
         $this->assertNotEmpty($consignmentFile->getBody());
@@ -103,7 +105,7 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $order = new DhlEcommerceOrder('MYLILORD-10031TEST', 'Jane Doe');
+        $order = new DhlEcommerceOrder('MYLILORD-10033TEST', 'Jane Doe');
 
         $order->set('bd.shipmentItems.0.shipmentPieces', array_merge($order->get('bd.shipmentItems.0.shipmentPieces'), [
                 ['pieceID' => 2]
@@ -117,16 +119,20 @@ class DhlEcommerceTest extends TestCase
 //        }
 
         dump($consignment->trackingNumbers);
-        $this->assertEquals('zip', $consignment->slip->getExtension());
-        $this->assertNotEmpty($consignment->slip->getBody());
+
+        $slip = Arr::first($consignment->slips);
+
+        $this->assertEquals('png', $slip->getExtension());
+        $this->assertNotEmpty($slip->getBody());
         $this->assertCount(2, $consignment->trackingNumbers);
+        $this->assertCount(2, $consignment->slips);
     }
 
     public function test_it_can_reprint_consignment_slip()
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $order = new DhlEcommerceOrder('03825-00', 'Jane Doe');
+        $order = new DhlEcommerceOrder('MYLILORD-10033TEST', 'Jane Doe');
 
         $order->set('bd.shipmentItems.0.shipmentPieces', array_merge($order->get('bd.shipmentItems.0.shipmentPieces'), [
                 ['pieceID' => 2]
@@ -134,7 +140,7 @@ class DhlEcommerceTest extends TestCase
 
         $consignmentFile = $courier->getConsignmentableSlip($order);
 
-        $this->assertEquals('zip', $consignmentFile->getExtension());
+        $this->assertEquals('png', $consignmentFile->getExtension());
         $this->assertNotEmpty($consignmentFile->getBody());
     }
 

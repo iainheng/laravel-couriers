@@ -3,6 +3,7 @@
 namespace Nextbyte\Tests\Courier\Unit;
 
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Arr;
 use Mockery as m;
 use Nextbyte\Courier\Drivers\BestExpress\BestExpressDriver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
@@ -116,7 +117,7 @@ class BestExpressTest extends TestCase
 
         $this->assertObjectHasAttribute('number', $consignment);
 
-        $consignmentFile = data_get($consignment, 'slip');
+        $consignmentFile = Arr::first(data_get($consignment, 'slips'));
 
         $this->assertEquals('pdf', $consignmentFile->getExtension());
         $this->assertNotEmpty($consignmentFile->getBody());
@@ -145,10 +146,13 @@ class BestExpressTest extends TestCase
             ]))
             ->set('piece', 2);
 
-        $consignmentFile = $courier->getConsignmentableSlip($order);
+        $consignmentFiles = $courier->getConsignmentableSlips($order);
 
-        $this->assertEquals('zip', $consignmentFile->getExtension());
+        $consignmentFile = Arr::first($consignmentFiles);
+
+        $this->assertEquals('pdf', $consignmentFile->getExtension());
         $this->assertNotEmpty($consignmentFile->getBody());
+        $this->assertCount(2, $consignmentFiles);
     }
 
     public function test_it_can_push_update_order_shipment_status()

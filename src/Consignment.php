@@ -83,9 +83,15 @@ class Consignment
     public $rawShipments;
 
     /**
+     * @deprecated
      * @var ConsignmentFile
      */
     public $slip;
+
+    /**
+     * @var ConsignmentFile[]
+     */
+    public $slips;
 
     protected function __construct(array $attributes)
     {

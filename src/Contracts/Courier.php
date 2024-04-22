@@ -82,6 +82,15 @@ interface Courier
     public function getConsignmentableSlip(Consignmentable $consignmentable);
 
     /**
+     * Get array of consignment note slip/waybill based on consignmentable
+     *
+     * @param Consignmentable $consignmentable
+     * @return ConsignmentFile[]
+     */
+    public function getConsignmentableSlips(Consignmentable $consignmentable);
+
+
+    /**
      * Get a latest shipment detail
      *
      * @param array $consignmentNumbers

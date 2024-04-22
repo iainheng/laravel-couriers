@@ -119,6 +119,14 @@ abstract class Driver implements Courier
     /**
      * @inheritDoc
      */
+    public function getConsignmentableSlips(Consignmentable $consignmentable)
+    {
+        // TODO: Implement getConsignmentableSlip() method.
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function pushShipmentStatus(callable $callback, array $attributes = [])
     {
         throw new UnsupportedCourierMethodException("Courier API doesn't support shipment status push.");
