@@ -229,7 +229,7 @@ class GdexDriver extends Driver
         $status = $this->normalizeShipmentStatus(data_get($data, 'enumStatus'));
 
         return Shipment::create([
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'latestScanDateTime'))),
+            'date' => Carbon::parse(data_get($data, 'latestScanDateTime')),
             'origin' => data_get($data, 'location'),
             'destination' => data_get($data, 'location'),
             'location' => data_get($data, 'location'),

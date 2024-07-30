@@ -60,7 +60,7 @@ class ShipmentStatusPush
     public static function create(array $attributes): ShipmentStatusPush
     {
         if (isset($attributes['date']) && !$attributes['date'] instanceof Carbon)
-            $attributes['date'] = Carbon::createFromTimestamp(strtotime($attributes['date']));
+            $attributes['date'] = Carbon::parse($attributes['date']);
 
         $instance = new static($attributes);
 

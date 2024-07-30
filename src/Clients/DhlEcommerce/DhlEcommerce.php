@@ -288,7 +288,7 @@ class DhlEcommerce
             'consignmentNumber' => $trackingNumber,
             'status' => $status,
             'description' => data_get($lastEvent, 'description', ShipmentStatus::getDescription($status)),
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($lastEvent, 'dateTime'))),
+            'date' => Carbon::parse(data_get($lastEvent, 'dateTime')),
             'currentCity' => data_get($lastEvent, 'address.city'),
             'nextCity' => null,
             'remarks' => data_get($lastEvent, 'description'),
@@ -379,7 +379,7 @@ class DhlEcommerce
         $expires = data_get($this->accessToken, 'expires');
 
         if ($expires && !$expires instanceof Carbon)
-            $expires = Carbon::createFromTimestamp(strtotime($expires));
+            $expires = Carbon::parse($expires);
 
         return !($expires && $expires->greaterThanOrEqualTo(now()->addSeconds(300)));
     }

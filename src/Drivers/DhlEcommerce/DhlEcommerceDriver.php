@@ -369,7 +369,7 @@ class DhlEcommerceDriver extends Driver
         $status = $this->normalizeShipmentStatus(data_get($data, 'status'));
 
         return Shipment::create([
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'dateTime'))),
+            'date' => Carbon::parse(data_get($data, 'dateTime')),
             'origin' => data_get($data, 'address.city'),
             'destination' => data_get($data, 'address.city'),
             'location' => data_get($data, 'address.city'),

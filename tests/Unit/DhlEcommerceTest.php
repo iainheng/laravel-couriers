@@ -24,7 +24,7 @@ class DhlEcommerceTest extends TestCase
         parent::setUp();
 
         $this->accessToken = [
-            'token' => '3251effd94554a7b9ed387cc7d667339',
+            'token' => '2c1619e67d7342b0a97d21668341d0d8',
             'expires' => Carbon::now()->addSeconds(56184),
         ];
     }
@@ -52,7 +52,7 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $orderNumber = 'ORD-10010TEST';
+        $orderNumber = 'ORD-10100TEST';
 
         $order = new DhlEcommerceOrder($orderNumber, 'Jane Doe');
 
@@ -148,7 +148,7 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $consignment = $courier->consignment('7127014431174024');
+        $consignment = $courier->consignment('7327071895094004');
 //        $consignment = $courier->consignment('ORD-10007TEST-1');
 
         $this->assertEquals(ShipmentStatus::Accepted, $consignment->status);

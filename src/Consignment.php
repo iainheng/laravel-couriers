@@ -105,10 +105,10 @@ class Consignment
     public static function create(array $attributes): Consignment
     {
         if (isset($attributes['pickedAt']) && !$attributes['pickedAt'] instanceof Carbon)
-            $attributes['pickedAt'] = Carbon::createFromTimestamp(strtotime($attributes['pickedAt']));
+            $attributes['pickedAt'] = Carbon::parse($attributes['pickedAt']);
 
         if (isset($attributes['updatedAt']) && !$attributes['updatedAt'] instanceof Carbon)
-            $attributes['updatedAt'] = Carbon::createFromTimestamp(strtotime($attributes['updatedAt']));
+            $attributes['updatedAt'] = Carbon::parse($attributes['updatedAt']);
 
         return new static($attributes);
     }

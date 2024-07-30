@@ -134,7 +134,7 @@ class BestExpress
             'consignmentNumber' => data_get($bizData, 'mailNo'),
             'status' => $status,
             'description' => ShipmentStatus::getDescription($status),
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($bizData, 'pushTime'))),
+            'date' => Carbon::parse(data_get($bizData, 'pushTime')),
             'currentCity' => data_get($bizData, 'currentCity'),
             'nextCity' => data_get($bizData, 'nextCity'),
             'remarks' => data_get($bizData, 'remarks'),

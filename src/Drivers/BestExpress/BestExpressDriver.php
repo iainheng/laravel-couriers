@@ -267,7 +267,7 @@ class BestExpressDriver extends Driver
 //            'consignmentNumber' => data_get($bizData, 'mailNo'),
 //            'status' => $status,
 //            'description' => ShipmentStatus::getDescription($status),
-//            'date' => Carbon::createFromTimestamp(strtotime(data_get($bizData, 'pushTime'))),
+//            'date' => Carbon::parse(data_get($bizData, 'pushTime')),
 //            'currentCity' => data_get($bizData, 'currentCity'),
 //            'nextCity' => data_get($bizData, 'nextCity'),
 //            'remarks' => data_get($bizData, 'remarks'),
@@ -352,7 +352,7 @@ class BestExpressDriver extends Driver
         $status = $this->normalizeShipmentStatus(data_get($data, 'enumStatus'));
 
         return Shipment::create([
-            'date' => Carbon::createFromTimestamp(strtotime(data_get($data, 'pushTime'))),
+            'date' => Carbon::parse(data_get($data, 'pushTime')),
             'origin' => data_get($data, 'currentCity'),
             'destination' => data_get($data, 'nextCity'),
             'location' => data_get($data, 'currentCity'),
