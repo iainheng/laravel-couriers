@@ -144,7 +144,7 @@ class DhlEcommerce
 
             $tokenData = [
                 'token' => data_get($response->getData(), 'token'),
-                'expires' => now()->addSeconds(data_get($response->getData(), 'expires_in_seconds', 0))
+                'expires' => now()->addSeconds((int) data_get($response->getData(), 'expires_in_seconds', 0))
             ];
 
             $this->cache->put('dhl-ecommerce', $tokenData);
