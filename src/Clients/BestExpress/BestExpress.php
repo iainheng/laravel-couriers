@@ -164,7 +164,7 @@ class BestExpress
             throw $this->determineException($exception);
         }
 
-        $response = json_decode($response->getBody(), true);
+        $response = json_decode($response->getBody()->getContents(), true);
 
         return json_decode(json_encode(array_merge($response, [
             'success' => data_get($response, 's') === 'success',
@@ -246,7 +246,7 @@ class BestExpress
             throw $this->determineException($exception);
         }
 
-        $response = json_decode(str_replace('SYSTEM_ERROR', '', $response->getBody()), true);
+        $response = json_decode(str_replace('SYSTEM_ERROR', '', $response->getBody()->getContents()), true);
 
         return $response ?? [];
     }

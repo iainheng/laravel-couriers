@@ -138,7 +138,7 @@ class DhlEcommerce
 
             $result = $this->client->get($url, $options);
 
-            $response = new AccessTokenApiResponse(json_decode($result->getBody(), true));
+            $response = new AccessTokenApiResponse(json_decode($result->getBody()->getContents(), true));
 
             $this->validateAndThrowResponse($response);
 
@@ -196,7 +196,7 @@ class DhlEcommerce
             $this->debug(json_encode($postData));
 
             $res = $this->client->post($url, $options);
-            $result = json_decode($res->getBody(), true);
+            $result = json_decode($res->getBody()->getContents(), true);
 
 //            $result = file_get_contents('../../tests/Fixtures/data/dhl-ecommerce/label_response.json');
 
