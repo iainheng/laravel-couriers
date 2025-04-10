@@ -305,7 +305,7 @@ class DhlEcommerceDriver extends Driver
 
             // remove prefix to locate order in callback
             $originalOrderNumber = $pushStatus->getOrderNumber();
-            $pushStatus->setOrderNumber(str_replace(config('courier.dhl-ecommerce.shipment_prefix'), '', $pushStatus->getOrderNumber()));
+            $pushStatus->setOrderNumber($this->parseShipmentOrderNumber($originalOrderNumber));
 
             /**@var $consignmentable Consignmentable */
             $consignmentable = $callback($pushStatus);
@@ -338,6 +338,17 @@ class DhlEcommerceDriver extends Driver
         }
 
         return response()->json($this->getWebhookResponseData($responseBody));
+    }
+
+    protected function parseShipmentOrderNumber($shipmentOrderNumber)
+    {
+        // Remove the prefix from the shipment order number
+        $orderNumber = str_replace(config('courier.dhl-ecommerce.shipment_prefix'), '', $shipmentOrderNumber);
+
+        // Remove the suffix from the order number if exists e.g: -1, -2
+        $orderNumber = preg_replace('/-\d+$/', '', $orderNumber);
+
+        return $orderNumber;
     }
 
     /**
