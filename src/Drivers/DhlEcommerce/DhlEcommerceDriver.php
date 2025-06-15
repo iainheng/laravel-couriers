@@ -346,7 +346,8 @@ class DhlEcommerceDriver extends Driver
         $orderNumber = str_replace(config('courier.dhl-ecommerce.shipment_prefix'), '', $shipmentOrderNumber);
 
         // Remove the suffix from the order number if exists e.g: -1, -2
-        $orderNumber = preg_replace('/-\d+$/', '', $orderNumber);
+        // The order suffix is required to locate the order correctly.
+        // $orderNumber = preg_replace('/-\d+$/', '', $orderNumber);
 
         return $orderNumber;
     }
