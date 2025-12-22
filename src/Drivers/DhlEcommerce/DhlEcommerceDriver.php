@@ -17,6 +17,13 @@ use Nextbyte\Courier\Shipment;
 class DhlEcommerceDriver extends Driver
 {
     /**
+     * The DHL Ecommerce client.
+     *
+     * @var DhlEcommerce
+     */
+    protected $client;
+
+    /**
      * Create a new DHL driver instance.
      *
      * @param DhlEcommerce $dhl
@@ -347,7 +354,7 @@ class DhlEcommerceDriver extends Driver
 
         // Remove the suffix from the order number if exists e.g: -1, -2
         // The order suffix is required to locate the order correctly.
-        // $orderNumber = preg_replace('/-\d+$/', '', $orderNumber);
+        $orderNumber = preg_replace('/(.*-[^-]+)-\d+$/', '$1', $orderNumber);
 
         return $orderNumber;
     }
