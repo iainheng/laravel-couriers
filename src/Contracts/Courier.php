@@ -105,4 +105,12 @@ interface Courier
      * @return Response
      */
     public function pushShipmentStatus(callable $callback, array $attributes = []);
+
+    /**
+     * Cancel a consignment/order
+     *
+     * @param string $consignmentNumber
+     * @return bool
+     */
+    public function cancelConsignment(string $consignmentNumber): bool;
 }

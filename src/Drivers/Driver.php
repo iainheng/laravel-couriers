@@ -131,4 +131,12 @@ abstract class Driver implements Courier
     {
         throw new UnsupportedCourierMethodException("Courier API doesn't support shipment status push.");
     }
+
+    /**
+     * @inheritDoc
+     */
+    public function cancelConsignment(string $consignmentNumber): bool
+    {
+        throw new UnsupportedCourierMethodException("Courier API doesn't support order cancellation.");
+    }
 }

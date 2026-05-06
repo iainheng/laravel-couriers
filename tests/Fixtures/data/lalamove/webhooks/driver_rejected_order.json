@@ -1,0 +1,21 @@
+{
+    "apiKey": "pk_test_a3487dea9a6032a1432ee841973e16eb",
+    "timestamp": 1778089819,
+    "signature": "fb5835fab4e5e9df4a07e236cb8fb0bee0ef007e6c84bd00d88f578d1993ac4b",
+    "eventId": "67A12516-B26A-4780-AABE-5EA7534B3396",
+    "eventType": "ORDER_STATUS_CHANGED",
+    "eventVersion": "v3",
+    "data": {
+        "order": {
+            "orderId": "3489270301534425797",
+            "scheduleAt": "2026-05-07T01:47.00Z",
+            "shareLink": "https://share.sandbox.lalamove.com?MY100260507014740112420010057775714&lang=en_MY&sign=be6962d1481a4c28d394c3a2ee4ab36f&source=api_wrapper",
+            "market": "MY_KUL",
+            "createdAt": "2026-05-07T01:47.00Z",
+            "driverId": null,
+            "previousStatus": "ON_GOING",
+            "status": "ASSIGNING_DRIVER"
+        },
+        "updatedAt": "2026-05-07T01:50.00Z"
+    }
+}

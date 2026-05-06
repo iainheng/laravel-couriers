@@ -54,4 +54,16 @@ return [
         'account_pickup' => env('DHL_ECOMMERCE_PICKUP_ACCOUNT', ''),
         'shipment_prefix' => env('DHL_ECOMMERCE_SHIPMENT_PREFIX', ''),
     ],
+    'lalamove' => [
+        'test_mode' => env('LALAMOVE_TEST_MODE', false),
+        'api_key' => env('LALAMOVE_API_KEY', ''),
+        'api_secret' => env('LALAMOVE_API_SECRET', ''),
+        'market' => env('LALAMOVE_MARKET', 'MY'),
+        // Metadata key used to resolve your internal order number from webhook payloads
+        'order_number_key' => env('LALAMOVE_ORDER_NUMBER_KEY', 'referenceId'),
+        'webhook_url' => env('LALAMOVE_WEBHOOK_URL', ''),
+        // Default service type used when none is specified at order creation
+        'service_type' => env('LALAMOVE_SERVICE_TYPE', 'MOTORCYCLE'),
+
+    ],
 ];

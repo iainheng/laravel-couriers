@@ -1,0 +1,64 @@
+{
+    "apiKey": "pk_test_a3487dea9a6032a1432ee841973e16eb",
+    "timestamp": 1777878720,
+    "signature": "7856e1693d4f430a4149eba5e9467dca523606bff224bb19c2efe2bdd287f2da",
+    "eventId": "5243A666-43DE-4F56-B387-029081D239D7",
+    "eventType": "ORDER_CREATED",
+    "eventVersion": "v3",
+    "data": {
+        "order": {
+            "orderId": "3487384979687051627",
+            "quotationId": "3487460355004146198",
+            "priceBreakdown": {
+                "base": "4.0",
+                "extraMileage": "20.6",
+                "totalExcludePriorityFee": "24.6",
+                "total": "24.6",
+                "currency": "MYR"
+            },
+            "driverId": null,
+            "shareLink": "https://share.sandbox.lalamove.com?MY100260504151159089420010093487815&lang=en_MY&sign=5214a18bdbd360709e21e32de77c2dd9&source=api_wrapper",
+            "status": "ASSIGNING_DRIVER",
+            "distance": {
+                "value": "36728",
+                "unit": "m"
+            },
+            "stops": [
+                {
+                    "coordinates": {
+                        "lat": "3.0098200",
+                        "lng": "101.7559700"
+                    },
+                    "address": "No 9, Jalan Alfa Impian 1, Taman Perindustrian Alfa Impian, Balakong, Selangor, 43300",
+                    "name": "Empire Hamper & Gift Sdn Bhd",
+                    "phone": "0129499667",
+                    "deliveryCode": {
+                        "value": null,
+                        "status": "Not Applicable"
+                    }
+                },
+                {
+                    "coordinates": {
+                        "lat": "3.1555800",
+                        "lng": "101.5798500"
+                    },
+                    "address": "219, Jalan Sepah Puteri 5/3, Kota Damansara, Petaling Jaya, Selangor, 47810",
+                    "name": "Next Byte Solutions/Iain Heng",
+                    "phone": "0123456789",
+                    "POD": {
+                        "status": "PENDING"
+                    },
+                    "deliveryCode": {
+                        "value": null,
+                        "status": "Not Applicable"
+                    }
+                }
+            ],
+            "metadata": {
+                "referenceId": "13993-000"
+            },
+            "remarks": []
+        },
+        "updatedAt": "2026-05-04T15:11.00Z"
+    }
+}

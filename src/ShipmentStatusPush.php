@@ -48,6 +48,27 @@ class ShipmentStatusPush
      */
     protected $remarks;
 
+    /**
+     * Driver details for DRIVER_ASSIGNED events.
+     * Keys: driverId, name, phone, photo, plateNumber, location (lat/lng).
+     *
+     * @var array
+     */
+    protected $driverDetails = [];
+
+    /**
+     * POD image URL for this stop (set for Lalamove POD_STATUS_CHANGED events).
+     * @var string|null
+     */
+    protected $podImageUrl;
+
+    /**
+     * Recipient name at this stop — used to match the stop to the correct order
+     * when multiple orders share one tracking number (multi-stop dispatch).
+     * @var string|null
+     */
+    protected $recipientName;
+
     protected function __construct(array $attributes)
     {
         foreach ($attributes as $attribute => $value) {
@@ -228,12 +249,52 @@ class ShipmentStatusPush
         $this->remarks = $remarks;
     }
 
-//    public function __get($attribute)
-//    {
-//        if (property_exists($this, $attribute)) {
-//            return $this->{$attribute};
-//        }
-//    }
+    /**
+     * @return array
+     */
+    public function getDriverDetails(): array
+    {
+        return $this->driverDetails;
+    }
 
+    /**
+     * @param array $driverDetails
+     */
+    public function setDriverDetails(array $driverDetails): void
+    {
+        $this->driverDetails = $driverDetails;
+    }
 
+    /**
+     * @return bool
+     */
+    public function hasDriverDetails(): bool
+    {
+        return !empty($this->driverDetails);
+    }
+
+    public function getPodImageUrl(): ?string
+    {
+        return $this->podImageUrl;
+    }
+
+    public function setPodImageUrl(?string $podImageUrl): void
+    {
+        $this->podImageUrl = $podImageUrl;
+    }
+
+    public function hasPod(): bool
+    {
+        return !empty($this->podImageUrl);
+    }
+
+    public function getRecipientName(): ?string
+    {
+        return $this->recipientName;
+    }
+
+    public function setRecipientName(?string $recipientName): void
+    {
+        $this->recipientName = $recipientName;
+    }
 }
