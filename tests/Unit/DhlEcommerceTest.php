@@ -24,7 +24,7 @@ class DhlEcommerceTest extends TestCase
         parent::setUp();
 
         $this->accessToken = [
-            'token' => '79526453d0e742aa9bac81141d0235c6',
+            'token' => 'c9fe593442654a94a897cc6e5e201970',
             'expires' => Carbon::now()->addSeconds(63255),
         ];
     }
@@ -52,7 +52,7 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $orderNumber = 'ORD-10100TEST';
+        $orderNumber = 'ORD-' . now()->format('YmdHis') . 'TEST';
 
         $order = new DhlEcommerceOrder($orderNumber, 'Jane Doe');
 
@@ -67,7 +67,7 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $orderNumber = 'ORD-10030TEST';
+        $orderNumber = 'ORD-' . now()->format('YmdHis') . 'TEST';
 
         $order = new DhlEcommerceOrder($orderNumber, 'Jane Doe');
 
@@ -78,7 +78,7 @@ class DhlEcommerceTest extends TestCase
 //            file_put_contents($consignment->slip->getName(), $consignment->slip->getBody());
 //        }
 
-        $this->assertObjectHasAttribute('number', $consignment);
+        $this->assertObjectHasProperty('number', $consignment);
 
         $consignmentFile = Arr::first(data_get($consignment, 'slips', []));
 
@@ -105,7 +105,7 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $order = new DhlEcommerceOrder('MYLILORD-10033TEST', 'Jane Doe');
+        $order = new DhlEcommerceOrder('MYLILORD-' . now()->format('YmdHis') . 'TEST', 'Jane Doe');
 
         $order->set('bd.shipmentItems.0.shipmentPieces', array_merge($order->get('bd.shipmentItems.0.shipmentPieces'), [
                 ['pieceID' => 2]
@@ -253,8 +253,13 @@ class DhlEcommerceTest extends TestCase
     {
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
-        $consignment = $courier->consignment('7327071895094004');
-//        $consignment = $courier->consignment('ORD-10007TEST-1');
+        // Create a fresh consignment so we have a tracking number that exists in the
+        // sandbox, then query its shipment details.
+        $orderNumber = 'ORD-' . now()->format('YmdHis') . 'TEST';
+        $order = new DhlEcommerceOrder($orderNumber, 'Jane Doe');
+        $trackingNumber = $courier->createConsignment($order->toConsignmentableArray('dhl-ecommerce'));
+
+        $consignment = $courier->consignment($trackingNumber);
 
         $this->assertEquals(ShipmentStatus::Accepted, $consignment->status);
         $this->assertStringContainsStringIgnoringCase('Puchong', optional($consignment->shipments->first())->getLocation());
@@ -267,7 +272,7 @@ class DhlEcommerceTest extends TestCase
 
         $order = new DhlEcommerceOrder('ORD-10002TEST', 'Jane Doe');
 
-        $pushData = json_decode(file_get_contents('../Fixtures/data/dhl-ecommerce/shipment_push_request.json'),
+        $pushData = json_decode(file_get_contents(__DIR__ . '/../Fixtures/data/dhl-ecommerce/shipment_push_request.json'),
             true);
 
         $response = $courier->pushShipmentStatus(function (ShipmentStatusPush $push) use ($order) {
