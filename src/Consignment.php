@@ -93,6 +93,13 @@ class Consignment
      */
     public $slips;
 
+    /**
+     * Electronic proof of delivery, available once the shipment is delivered.
+     *
+     * @var ProofOfDelivery|null
+     */
+    public $proofOfDelivery;
+
     protected function __construct(array $attributes)
     {
         foreach ($attributes as $attribute => $value) {

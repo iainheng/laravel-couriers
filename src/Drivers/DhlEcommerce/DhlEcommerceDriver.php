@@ -12,6 +12,7 @@ use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
+use Nextbyte\Courier\ProofOfDelivery;
 use Nextbyte\Courier\Shipment;
 
 class DhlEcommerceDriver extends Driver
@@ -67,7 +68,9 @@ class DhlEcommerceDriver extends Driver
             abort(500, data_get($response, 'message', 'Unknown error getting consignments shipment details'));
         }
 
-        $rawShipments = collect(data_get($response, 'data.bd.shipmentItems.0.events', []));
+        $item = data_get($response, 'data.bd.shipmentItems.0', []);
+
+        $rawShipments = collect(data_get($item, 'events', []));
 
         $shipments = $rawShipments->map(function ($data) {
             return $this->createShipmentFromResponse($data);
@@ -88,9 +91,75 @@ class DhlEcommerceDriver extends Driver
             'status' => $shipments->first()->getStatus(),
             'description' => $description,
             'updatedAt' => $shipments->first()->getDate(),
+            'proofOfDelivery' => $this->createProofOfDeliveryFromResponse($item, $shipments),
         ];
 
         return Consignment::create($attributes);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getProofOfDelivery($trackingNumber)
+    {
+        return $this->consignment($trackingNumber)->proofOfDelivery;
+    }
+
+    /**
+     * Build the electronic proof of delivery from a tracking shipment item, or
+     * return null when no proof of delivery has been captured yet (i.e. the
+     * shipment has not been delivered).
+     *
+     * @param array $item
+     * @param \Illuminate\Support\Collection $shipments
+     * @return ProofOfDelivery|null
+     */
+    protected function createProofOfDeliveryFromResponse($item, $shipments)
+    {
+        $recipientName = data_get($item, 'recipientName');
+        $signature = data_get($item, 'recipientSignature');
+        $imageUrl = data_get($item, 'deliveryImage');
+
+        if (empty($recipientName) && empty($signature) && empty($imageUrl)) {
+            return null;
+        }
+
+        $deliveredShipment = $shipments->first(function ($shipment) {
+            return $shipment->getStatus() === ShipmentStatus::Delivered;
+        });
+
+        return ProofOfDelivery::create([
+            'recipientName' => $recipientName,
+            'signature' => $this->createSignatureFile($signature),
+            'imageUrl' => $imageUrl,
+            'deliveredAt' => $deliveredShipment ? $deliveredShipment->getDate() : null,
+            'raw' => $item,
+        ]);
+    }
+
+    /**
+     * Decode the base64 encoded recipient signature into a storable file.
+     *
+     * @param string|null $base64
+     * @return ConsignmentFile|null
+     */
+    protected function createSignatureFile($base64)
+    {
+        if (empty($base64)) {
+            return null;
+        }
+
+        $body = base64_decode($base64);
+
+        // DHL returns the signature as a JPEG; fall back to png if the magic
+        // bytes say otherwise.
+        $extension = (substr($body, 0, 8) === "\x89PNG\r\n\x1a\n") ? 'png' : 'jpg';
+
+        return ConsignmentFile::create([
+            'name' => "signature.{$extension}",
+            'extension' => $extension,
+            'body' => $body,
+        ]);
     }
 
     /**

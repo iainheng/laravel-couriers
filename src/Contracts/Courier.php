@@ -49,6 +49,15 @@ interface Courier
     public function consignment($trackingNumber);
 
     /**
+     * Get the electronic proof of delivery (ePOD) for a tracking number. Only
+     * available once the shipment has been delivered.
+     *
+     * @param string $trackingNumber
+     * @return \Nextbyte\Courier\ProofOfDelivery|null
+     */
+    public function getProofOfDelivery($trackingNumber);
+
+    /**
      * Create a new consignment with attributes
      *
      * @param array $attributes

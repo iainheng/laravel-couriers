@@ -127,6 +127,14 @@ abstract class Driver implements Courier
     /**
      * @inheritDoc
      */
+    public function getProofOfDelivery($trackingNumber)
+    {
+        throw new UnsupportedCourierMethodException("Courier API doesn't support proof of delivery.");
+    }
+
+    /**
+     * @inheritDoc
+     */
     public function pushShipmentStatus(callable $callback, array $attributes = [])
     {
         throw new UnsupportedCourierMethodException("Courier API doesn't support shipment status push.");

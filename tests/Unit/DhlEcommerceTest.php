@@ -7,8 +7,11 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Storage;
 use Mockery as m;
+use Nextbyte\Courier\Clients\DhlEcommerce\DhlEcommerce;
+use Nextbyte\Courier\Clients\DhlEcommerce\Responses\TrackingItemResponse;
 use Nextbyte\Courier\Drivers\DhlEcommerce\DhlEcommerceDriver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
+use Nextbyte\Courier\ProofOfDelivery;
 use Nextbyte\Courier\ShipmentStatusPush;
 use Nextbyte\Tests\Courier\Fixtures\DhlEcommerceOrder;
 use Nextbyte\Tests\Courier\TestCase;
@@ -263,6 +266,61 @@ class DhlEcommerceTest extends TestCase
 
         $this->assertEquals(ShipmentStatus::Accepted, $consignment->status);
         $this->assertStringContainsStringIgnoringCase('Puchong', optional($consignment->shipments->first())->getLocation());
+    }
+
+    public function test_it_can_capture_proof_of_delivery_from_tracking()
+    {
+        $courier = $this->makeDhlDriverWithTrackingResponse('trackitem_full_response.json');
+
+        $pod = $courier->getProofOfDelivery('7228038086003024');
+
+        $this->assertInstanceOf(ProofOfDelivery::class, $pod);
+        $this->assertEquals('zakwan', $pod->recipientName);
+
+        $this->assertTrue($pod->hasSignature());
+        $this->assertEquals('jpg', $pod->signature->getExtension());
+        $this->assertNotEmpty($pod->signature->getBody());
+
+        $this->assertTrue($pod->hasImage());
+        $this->assertStringContainsString('cloudfront.net', $pod->imageUrl);
+
+        $this->assertInstanceOf(Carbon::class, $pod->deliveredAt);
+    }
+
+    public function test_it_exposes_proof_of_delivery_on_the_consignment()
+    {
+        $courier = $this->makeDhlDriverWithTrackingResponse('trackitem_full_response.json');
+
+        $consignment = $courier->consignment('7228038086003024');
+
+        $this->assertInstanceOf(ProofOfDelivery::class, $consignment->proofOfDelivery);
+        $this->assertEquals(ShipmentStatus::Delivered, $consignment->status);
+    }
+
+    public function test_it_returns_null_proof_of_delivery_when_shipment_not_delivered()
+    {
+        $courier = $this->makeDhlDriverWithTrackingResponse('trackitem_response.json');
+
+        $this->assertNull($courier->getProofOfDelivery('7027010899621494'));
+    }
+
+    /**
+     * Build a DHL driver whose client returns the given tracking fixture, so
+     * proof of delivery parsing can be tested without hitting the live API.
+     *
+     * @param string $fixture
+     * @return DhlEcommerceDriver
+     */
+    protected function makeDhlDriverWithTrackingResponse(string $fixture): DhlEcommerceDriver
+    {
+        $response = TrackingItemResponse::create(
+            file_get_contents(__DIR__ . '/../Fixtures/data/dhl-ecommerce/' . $fixture)
+        );
+
+        $client = m::mock(DhlEcommerce::class);
+        $client->shouldReceive('getShipmentStatusDetail')->andReturn($response);
+
+        return new DhlEcommerceDriver($client);
     }
 
     public function test_it_can_push_update_order_shipment_status()
