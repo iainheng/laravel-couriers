@@ -1,0 +1,15 @@
+{
+    "apiKey": "pk_test_a3487dea9a6032a1432ee841973e16eb",
+    "timestamp": 1778094519,
+    "signature": "0679cec0ab855c5ba611ec81e1789be9326f3ac2db0007eaf0e22749defe24e3",
+    "eventId": "5297FF40-17B1-4E88-B417-45412EE0D5AB",
+    "eventType": "WALLET_BALANCE_CHANGED",
+    "eventVersion": "v3",
+    "data": {
+        "balance": {
+            "amount": "318.4",
+            "currency": "MYR"
+        },
+        "updatedAt": "2026-05-07T03:08.00Z"
+    }
+}

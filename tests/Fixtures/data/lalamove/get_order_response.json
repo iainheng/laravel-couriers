@@ -1,0 +1,49 @@
+{
+    "data": {
+        "orderId": "3487384979687051627",
+        "quotationId": "3487460355004146198",
+        "status": "ASSIGNING_DRIVER",
+        "driverId": null,
+        "shareLink": "https://share.sandbox.lalamove.com?MY100260504151159089420010093487815&lang=en_MY",
+        "priceBreakdown": {
+            "base": "4.0",
+            "extraMileage": "20.6",
+            "totalExcludePriorityFee": "24.6",
+            "total": "24.6",
+            "currency": "MYR"
+        },
+        "distance": {
+            "value": "36728",
+            "unit": "m"
+        },
+        "stops": [
+            {
+                "stopId": "3487460355004146199",
+                "coordinates": {
+                    "lat": "3.0098200",
+                    "lng": "101.7559700"
+                },
+                "address": "No 9, Jalan Alfa Impian 1, Taman Perindustrian Alfa Impian, Balakong, Selangor, 43300",
+                "name": "Empire Hamper & Gift Sdn Bhd",
+                "phone": "0129499667"
+            },
+            {
+                "stopId": "3487460355004146200",
+                "coordinates": {
+                    "lat": "3.1555800",
+                    "lng": "101.5798500"
+                },
+                "address": "219, Jalan Sepah Puteri 5/3, Kota Damansara, Petaling Jaya, Selangor, 47810",
+                "name": "Next Byte Solutions",
+                "phone": "0123456789",
+                "POD": {
+                    "status": "PENDING"
+                }
+            }
+        ],
+        "metadata": {
+            "referenceId": "13993-000"
+        },
+        "remarks": []
+    }
+}

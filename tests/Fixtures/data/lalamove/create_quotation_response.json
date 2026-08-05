@@ -1,0 +1,36 @@
+{
+    "data": {
+        "quotationId": "3487460355004146198",
+        "expiresAt": "2026-05-06T10:05:00Z",
+        "serviceType": "MOTORCYCLE",
+        "stops": [
+            {
+                "stopId": "3487460355004146199",
+                "coordinates": {
+                    "lat": "3.0098200",
+                    "lng": "101.7559700"
+                },
+                "address": "No 9, Jalan Alfa Impian 1, Taman Perindustrian Alfa Impian, Balakong, Selangor, 43300"
+            },
+            {
+                "stopId": "3487460355004146200",
+                "coordinates": {
+                    "lat": "3.1555800",
+                    "lng": "101.5798500"
+                },
+                "address": "219, Jalan Sepah Puteri 5/3, Kota Damansara, Petaling Jaya, Selangor, 47810"
+            }
+        ],
+        "priceBreakdown": {
+            "base": "4.0",
+            "extraMileage": "20.6",
+            "totalExcludePriorityFee": "24.6",
+            "total": "24.6",
+            "currency": "MYR"
+        },
+        "distance": {
+            "value": "36728",
+            "unit": "m"
+        }
+    }
+}

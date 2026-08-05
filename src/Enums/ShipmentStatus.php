@@ -26,6 +26,9 @@ final class ShipmentStatus extends Enum
     const ReturnStart = 'return-start';
     const Returned = 'returned';
     const OnHold = 'on-hold';
+    const DriverAssigned = 'driver-assigned';
+    const DriverRejected = 'driver-rejected';
+    const Rejected = 'rejected';
     const Unknown = 'unknown';
 
     /**
@@ -83,6 +86,15 @@ final class ShipmentStatus extends Enum
                 break;
             case self::OnHold:
                 $name = 'Package is held in the station';
+                break;
+            case self::DriverAssigned:
+                $name = 'Driver has been assigned';
+                break;
+            case self::DriverRejected:
+                $name = 'Driver rejected the order';
+                break;
+            case self::Rejected:
+                $name = 'Order was rejected by courier';
                 break;
             case self::Undelivered:
                 $name = 'Parcel is undelivered';

@@ -1,0 +1,25 @@
+{
+    "apiKey": "pk_test_a3487dea9a6032a1432ee841973e16eb",
+    "timestamp": 1777879930,
+    "signature": "3356730620f84b7f353e43b06eb66d38b9558a5daef0119cf85a0484f60d6984",
+    "eventId": "32B927C7-705A-438B-B617-EE3B857EAB62",
+    "eventType": "DRIVER_ASSIGNED",
+    "eventVersion": "v3",
+    "data": {
+        "driver": {
+            "driverId": "80039",
+            "phone": "+6011144111",
+            "name": "TestDriver 44111",
+            "photo": null,
+            "plateNumber": "VP2381474"
+        },
+        "location": {
+            "lng": 101.68178413,
+            "lat": 3.13984581
+        },
+        "order": {
+            "orderId": "3487384979687051627"
+        },
+        "updatedAt": "2026-05-04T15:32.00Z"
+    }
+}

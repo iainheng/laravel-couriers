@@ -10,8 +10,8 @@ class Consignment
     /**
      * The tracking number.
      *
-     * @var array
-    */
+     * @var string
+     */
     public $number;
 
     /**

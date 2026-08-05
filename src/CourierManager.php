@@ -6,11 +6,13 @@ use Illuminate\Support\Manager;
 use Nextbyte\Courier\Clients\BestExpress\BestExpress;
 use Nextbyte\Courier\Clients\DhlEcommerce\DhlEcommerce;
 use Nextbyte\Courier\Clients\Gdex\Gdex;
+use Nextbyte\Courier\Clients\Lalamove\Lalamove;
 use Nextbyte\Courier\Clients\NationwideExpress\NationwideExpress;
 use Nextbyte\Courier\Clients\PosLaju\PosLaju;
 use Nextbyte\Courier\Drivers\BestExpress\BestExpressDriver;
 use Nextbyte\Courier\Drivers\DhlEcommerce\DhlEcommerceDriver;
 use Nextbyte\Courier\Drivers\Gdex\GdexDriver;
+use Nextbyte\Courier\Drivers\Lalamove\LalamoveDriver;
 use Nextbyte\Courier\Drivers\NationwideExpress\NationwideExpressDriver;
 use Nextbyte\Courier\Drivers\Ninjavan\NinjavanDriver;
 use Nextbyte\Courier\Drivers\Null\NullDriver;
@@ -131,6 +133,14 @@ class CourierManager extends Manager
     public function createGdexDriver()
     {
         return new GdexDriver(new Gdex($this->config->get('courier.gdex')));
+    }
+
+    /**
+     * @return LalamoveDriver
+     */
+    public function createLalamoveDriver()
+    {
+        return new LalamoveDriver(new Lalamove($this->config->get('courier.lalamove')));
     }
 
     /**
