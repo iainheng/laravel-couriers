@@ -1,0 +1,47 @@
+{
+  "pushTrackItemRequest": {
+    "hdr": {
+      "messageType": "PUSHTRACKITEM",
+      "messageDateTime": "2026-07-29T11:06:42+08:00",
+      "messageVersion": "1.0",
+      "messageLanguage": "en"
+    },
+    "bd": {
+      "shipmentItems": [
+        {
+          "shipmentID": "MYLIL14005-001",
+          "trackingID": "7227071747631886",
+          "recipientName": "Dan",
+          "recipientSignature": "https://preprod.apollo.cloudfront.dhl.com/signatures/7227071747631886_2014214_signature_Fyhvfnn5RTUHDqcQVPz%2Bk4nH3gHP1RgJkFEwF1lw5eZO0wCohbjdGEq69slNhOL0.jpg?20260729030639",
+          "geocode_latitude": 3.010142800000000118387788461404852569103240966796875,
+          "geocode_longitude": 101.6120681999999959543856675736606121063232421875,
+          "shippingService": {
+            "productCode": "PDO"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "height": "0",
+          "width": "0",
+          "length": "0",
+          "dimensionUnit": "cm",
+          "trackingURL": "https://ecommerceportal.dhl.com/track/?ref=MYLIL14005-001",
+          "events": [
+            {
+              "status": "77093",
+              "description": "Successfully delivered",
+              "dateTime": "2026-07-29T11:06:38",
+              "timezone": "LT",
+              "address": {
+                "city": "Cheras",
+                "postCode": "55100",
+                "state": "Kuala Lumpur",
+                "country": "MY"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "pushTrackItemRequest": {
+    "hdr": {
+      "messageType": "PUSHTRACKITEM",
+      "messageDateTime": "2026-07-27T13:55:28+08:00",
+      "messageVersion": "1.0",
+      "messageLanguage": "en"
+    },
+    "bd": {
+      "shipmentItems": [
+        {
+          "shipmentID": "MYLIL14005-000",
+          "trackingID": "7227073172593376",
+          "shippingService": {
+            "productCode": "PDO",
+            "productName": "Parcel Domestic"
+          },
+          "consigneeAddress": {
+            "country": "MY"
+          },
+          "dimensionUnit": "cm",
+          "trackingURL": "https://ecommerceportal.dhl.com/track/?ref=MYLILTESTEMPIRE01",
+          "events": [
+            {
+              "status": "77123",
+              "description": "Shipment data received",
+              "dateTime": "2026-07-27T13:55:28",
+              "timezone": "LT",
+              "address": {
+                "city": "Puchong",
+                "postCode": "47100",
+                "state": "Selangor",
+                "country": "MY"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
