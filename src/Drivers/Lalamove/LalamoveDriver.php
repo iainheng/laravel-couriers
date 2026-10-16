@@ -11,6 +11,7 @@ use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
+use Nextbyte\Courier\Price;
 use Nextbyte\Courier\Shipment;
 use Nextbyte\Courier\ShipmentStatusPush;
 
@@ -92,6 +93,31 @@ class LalamoveDriver extends Driver
     }
 
     /**
+     * Get a price for a delivery without booking it.
+     *
+     * Takes the same attributes as createConsignment(). Pass the result back as the
+     * `quotation` attribute to createConsignment() to book at this exact price before
+     * it expires.
+     *
+     * @param array $attributes
+     * @return LalamoveQuotation
+     * @throws CourierException
+     */
+    public function quote(array $attributes): LalamoveQuotation
+    {
+        $quotationPayload = array_filter([
+            'serviceType' => data_get($attributes, 'serviceType'),
+            'language' => data_get($attributes, 'language', 'en_MY'),
+            'stops' => data_get($attributes, 'stops', []),
+            'scheduleAt' => data_get($attributes, 'scheduleAt'),
+            'specialRequests' => data_get($attributes, 'specialRequests', []),
+            'isRouteOptimized' => data_get($attributes, 'isRouteOptimized'),
+        ], fn($v) => $v !== null && $v !== []);
+
+        return LalamoveQuotation::fromResponse($this->client->createQuotation($quotationPayload) ?: []);
+    }
+
+    /**
      * Create a Lalamove order via a two-step quotation + order flow.
      *
      * Expected attributes:
@@ -104,16 +130,55 @@ class LalamoveDriver extends Driver
      *   - isRouteOptimized (bool)       optional
      *   - metadata (array)              optional, e.g. {referenceId: 'ORDER-001'}
      *   - isPODEnabled (bool)           optional
+     *   - quotation (LalamoveQuotation|array|null) optional, from quote(); books at that
+     *                                   price instead of fetching a new quotation
      *
      * @param array $attributes
      * @return string  Lalamove orderId
+     * @throws CourierException
      */
     public function createConsignment(array $attributes)
     {
-        logger()->info('Lalamove createConsignment', $attributes);
-        [$quotationId, $stopIds] = $this->fetchQuotation($attributes);
+        return data_get($this->placeOrder($attributes), 'data.orderId');
+    }
 
-        $orderAttributes = $this->buildOrderAttributes($attributes, $quotationId, $stopIds);
+    /**
+     * Create an order and return a Consignment object (no waybill slip for Lalamove).
+     *
+     * The consignment's `price` is what Lalamove charged for the order.
+     *
+     * @param array $attributes  See createConsignment()
+     * @return Consignment
+     * @throws CourierException
+     */
+    public function createConsignmentWithSlip(array $attributes)
+    {
+        $response = $this->placeOrder($attributes);
+        $orderId = data_get($response, 'data.orderId');
+
+        return Consignment::create([
+            'number' => $orderId,
+            'trackingNumbers' => [$orderId],
+            'orderNumber' => data_get($attributes, 'metadata.referenceId'),
+            'slips' => [],
+            'price' => Price::fromLalamove(data_get($response, 'data.priceBreakdown')),
+        ]);
+    }
+
+    /**
+     * Book the order with the given quotation, or a fresh one, and return Lalamove's response.
+     *
+     * @param array $attributes  See createConsignment()
+     * @return array
+     * @throws CourierException
+     */
+    protected function placeOrder(array $attributes): array
+    {
+        $quotation = $this->resolveQuotation($attributes);
+
+        logger()->info('Lalamove createConsignment', Arr::except($attributes, 'quotation') + ['quotationId' => $quotation->id]);
+
+        $orderAttributes = $this->buildOrderAttributes($attributes, $quotation->id, $quotation->stopIds);
 
         logger()->info('Lalamove createConsignment orderAttributes', $orderAttributes);
         $response = $this->client->createOrder($orderAttributes);
@@ -122,25 +187,31 @@ class LalamoveDriver extends Driver
             throw new CourierException(data_get($response, 'message', 'Unknown Lalamove create order error.'));
         }
 
-        return data_get($response, 'data.orderId');
+        return $response;
     }
 
     /**
-     * Create an order and return a Consignment object (no waybill slip for Lalamove).
+     * Use the caller's quotation when given, otherwise quote now.
      *
-     * @param array $attributes
-     * @return Consignment
+     * @throws CourierException when the given quotation has expired
      */
-    public function createConsignmentWithSlip(array $attributes)
+    protected function resolveQuotation(array $attributes): LalamoveQuotation
     {
-        $orderId = $this->createConsignment($attributes);
+        $quotation = data_get($attributes, 'quotation');
 
-        return Consignment::create([
-            'number' => $orderId,
-            'trackingNumbers' => [$orderId],
-            'orderNumber' => data_get($attributes, 'metadata.referenceId'),
-            'slips' => [],
-        ]);
+        if (is_array($quotation)) {
+            $quotation = LalamoveQuotation::fromArray($quotation);
+        }
+
+        if (!$quotation instanceof LalamoveQuotation) {
+            return $this->quote($attributes);
+        }
+
+        if ($quotation->isExpired()) {
+            throw new CourierException('Lalamove quotation ' . $quotation->id . ' has expired. Get a new quote and try again.');
+        }
+
+        return $quotation;
     }
 
     /**
@@ -384,30 +455,15 @@ class LalamoveDriver extends Driver
     /**
      * Get a quotation and return [quotationId, stopIds indexed by original stop index].
      *
+     * @deprecated Use quote(), which also returns the price and expiry.
      * @param array $attributes
      * @return array  [quotationId, stopIds]
      */
     protected function fetchQuotation(array $attributes): array
     {
-        $quotationPayload = array_filter([
-            'serviceType' => data_get($attributes, 'serviceType'),
-            'language' => data_get($attributes, 'language', 'en_MY'),
-            'stops' => data_get($attributes, 'stops', []),
-            'scheduleAt' => data_get($attributes, 'scheduleAt'),
-            'specialRequests' => data_get($attributes, 'specialRequests', []),
-            'isRouteOptimized' => data_get($attributes, 'isRouteOptimized'),
-        ], fn($v) => $v !== null && $v !== []);
+        $quotation = $this->quote($attributes);
 
-        $response = $this->client->createQuotation($quotationPayload);
-
-        if (empty($response) || !data_get($response, 'data.quotationId')) {
-            throw new CourierException(data_get($response, 'message', 'Unknown Lalamove quotation error.'));
-        }
-
-        $quotationId = data_get($response, 'data.quotationId');
-        $stopIds = array_column(data_get($response, 'data.stops', []), 'stopId');
-
-        return [$quotationId, $stopIds];
+        return [$quotation->id, $quotation->stopIds];
     }
 
     /**

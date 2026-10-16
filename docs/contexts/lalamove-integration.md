@@ -85,3 +85,11 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 # API integration tests (needs .env credentials)
 ./vendor/bin/phpunit tests/Unit/LalamoveApiTest.php
 ```
+
+## Quotes before booking and the charged price
+
+- `LalamoveDriver::quote(array $attributes): LalamoveQuotation` gets a price without booking. It takes the same attributes as `createConsignment()`.
+- `LalamoveQuotation` holds the quotation ID, stop IDs, `expiresAt` (about 5 minutes), `price` (`Nextbyte\Courier\Price`: `total`, `currency`, `breakdown`), `serviceType` and `distanceMeters`. `toArray()` / `fromArray()` let an app keep it between requests (e.g. in the cache).
+- Pass it back as the `quotation` attribute (object or array) to `createConsignment()` / `createConsignmentWithSlip()` to book at exactly the quoted price. An expired quotation throws `CourierException` before any API call; without a `quotation`, the driver quotes and books in one go as before.
+- `createConsignmentWithSlip()` sets `Consignment::$price` to what Lalamove charged (from the Place Order response's `priceBreakdown`).
+- Unit tests: `test_it_can_quote_without_booking`, `test_create_consignment_books_with_the_given_quotation`, `test_an_expired_quotation_is_refused_without_calling_lalamove`, `test_create_consignment_with_slip_reports_the_charged_price`, and others in `LalamoveTest`.
