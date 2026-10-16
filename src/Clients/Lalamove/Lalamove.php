@@ -2,7 +2,8 @@
 
 namespace Nextbyte\Courier\Clients\Lalamove;
 
-use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\BadResponseException;
+use GuzzleHttp\Exception\ConnectException;
 use Nextbyte\Courier\Exceptions\CourierException;
 
 class Lalamove
@@ -143,10 +144,15 @@ class Lalamove
      * @param string $path
      * @param array $data
      * @return array
-     * @throws CourierException|\GuzzleHttp\Exception\GuzzleException
+     * @throws CourierException when the keys are missing, Lalamove returns an error, or cannot be reached
+     * @throws \GuzzleHttp\Exception\GuzzleException for other transport failures
      */
     protected function request(string $method, string $path, array $data = []): array
     {
+        if (blank($this->apiKey) || blank($this->apiSecret)) {
+            throw new CourierException('Lalamove API key and secret are not configured. Set LALAMOVE_API_KEY and LALAMOVE_API_SECRET.');
+        }
+
         $body = !empty($data) ? json_encode(['data' => $data]) : '';
 
         try {
@@ -163,8 +169,10 @@ class Lalamove
             }
 
             return json_decode($response->getBody()->getContents(), true) ?? [];
-        } catch (ClientException $exception) {
+        } catch (BadResponseException $exception) {
             throw $this->determineException($exception);
+        } catch (ConnectException $exception) {
+            throw new CourierException('Could not reach Lalamove. Check the internet connection and try again.', 0, $exception);
         }
     }
 
@@ -219,19 +227,35 @@ class Lalamove
     }
 
     /**
-     * @param ClientException $exception
-     * @return \Exception
+     * Turn a Lalamove HTTP error into a CourierException carrying Lalamove's own message.
+     *
+     * Lalamove reports errors as {"errors": [{"id", "message", "detail"}]}; its gateway
+     * uses {"message"}. Anything else falls back to the HTTP reason phrase.
+     *
+     * @param BadResponseException $exception
+     * @return CourierException
      */
-    protected function determineException(ClientException $exception): \Exception
+    protected function determineException(BadResponseException $exception): \Exception
     {
-        $statusCode = (int) $exception->getResponse()->getStatusCode();
-        $body = json_decode($exception->getResponse()->getBody()->getContents(), true);
-        $message = data_get($body, 'message', $exception->getMessage());
+        $response = $exception->getResponse();
+        $statusCode = (int) $response->getStatusCode();
+        $body = json_decode((string) $response->getBody(), true);
 
-        if ($statusCode >= 400 && $statusCode < 500) {
-            return new CourierException($message, $statusCode);
+        $error = data_get($body, 'errors.0', []);
+        $message = data_get($error, 'message') ?: data_get($body, 'message') ?: $response->getReasonPhrase();
+
+        if ($detail = data_get($error, 'detail')) {
+            $message .= " ({$detail})";
         }
 
-        return $exception;
+        if ($id = data_get($error, 'id')) {
+            $message = "{$id}: {$message}";
+        }
+
+        if ($statusCode >= 500) {
+            $message = "Lalamove is having trouble right now (HTTP {$statusCode}): " . rtrim($message, ".") . ". Try again shortly.";
+        }
+
+        return new CourierException($message, $statusCode, $exception);
     }
 }
