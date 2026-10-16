@@ -6,12 +6,14 @@ use Illuminate\Http\JsonResponse;
 use Carbon\Carbon;
 use Mockery as m;
 use Nextbyte\Courier\Clients\Lalamove\Lalamove;
+use Nextbyte\Courier\Contracts\Quotable;
 use Nextbyte\Courier\Drivers\Lalamove\LalamoveDriver;
 use Nextbyte\Courier\Drivers\Lalamove\LalamoveQuotation;
 use Nextbyte\Courier\Drivers\Lalamove\LalamoveTrackingResponse;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Price;
+use Nextbyte\Courier\Quotation;
 use Nextbyte\Courier\ShipmentStatusPush;
 use Nextbyte\Tests\Courier\Fixtures\LalamoveOrder;
 use Nextbyte\Tests\Courier\TestCase;
@@ -445,6 +447,55 @@ class LalamoveTest extends TestCase
 
         $attributes = $this->makeOrder()->toConsignmentableArray('lalamove');
         (new LalamoveDriver($mockClient))->createConsignment($attributes + ['quotation' => $expired]);
+    }
+
+    public function test_the_lalamove_driver_is_quotable()
+    {
+        $driver = new LalamoveDriver(m::mock(Lalamove::class));
+
+        $this->assertInstanceOf(Quotable::class, $driver);
+        $this->assertNotInstanceOf(Quotable::class, $this->app->make('courier')->vendor('dhl-ecommerce'));
+    }
+
+    public function test_a_lalamove_quotation_is_a_quotation()
+    {
+        $quotation = $this->freshQuotation();
+
+        $this->assertInstanceOf(Quotation::class, $quotation);
+        $this->assertSame('24.6', $quotation->price->total);
+        $this->assertFalse($quotation->isExpired());
+    }
+
+    public function test_a_quotation_from_another_courier_is_refused()
+    {
+        $foreign = new Quotation('OTHER-1', Carbon::now()->addMinutes(5), new Price('10', 'MYR'));
+
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldNotReceive('createQuotation');
+        $mockClient->shouldNotReceive('createOrder');
+
+        $this->expectException(CourierException::class);
+        $this->expectExceptionMessage('Lalamove can only book with a quotation from LalamoveDriver::quote()');
+
+        $attributes = $this->makeOrder()->toConsignmentableArray('lalamove');
+        (new LalamoveDriver($mockClient))->createConsignment($attributes + ['quotation' => $foreign]);
+    }
+
+    public function test_a_v1_7_0_quotation_array_still_books()
+    {
+        $stored = [
+            'id' => '3487460355004146198',
+            'stopIds' => ['3487460355004146199', '3487460355004146200'],
+            'expiresAt' => Carbon::now()->addMinutes(5)->toIso8601ZuluString(),
+            'price' => ['total' => '24.6', 'currency' => 'MYR', 'breakdown' => []],
+            'serviceType' => 'MOTORCYCLE',
+            'distanceMeters' => 36728,
+        ];
+
+        $restored = LalamoveQuotation::fromArray($stored);
+
+        $this->assertSame($stored['stopIds'], $restored->stopIds);
+        $this->assertSame('24.6', $restored->price->total);
     }
 
     public function test_create_consignment_with_slip_reports_the_charged_price()
