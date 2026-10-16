@@ -5,6 +5,7 @@ namespace Nextbyte\Courier\Drivers\Lalamove;
 use Carbon\Carbon;
 use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Price;
+use Nextbyte\Courier\Quotation;
 
 /**
  * A Lalamove quotation: the price for a route, valid until it expires (about five minutes).
@@ -12,7 +13,7 @@ use Nextbyte\Courier\Price;
  * Pass it back to LalamoveDriver::createConsignment() as the `quotation` attribute to
  * book at exactly this price. Use toArray()/fromArray() to keep it between requests.
  */
-class LalamoveQuotation
+class LalamoveQuotation extends Quotation
 {
     /**
      * @param string     $id             Lalamove quotationId
@@ -20,13 +21,14 @@ class LalamoveQuotation
      * @param int|null   $distanceMeters Route distance in metres
      */
     public function __construct(
-        public readonly string $id,
+        string $id,
         public readonly array $stopIds,
-        public readonly Carbon $expiresAt,
-        public readonly ?Price $price,
-        public readonly ?string $serviceType = null,
-        public readonly ?int $distanceMeters = null,
+        Carbon $expiresAt,
+        ?Price $price,
+        ?string $serviceType = null,
+        ?int $distanceMeters = null,
     ) {
+        parent::__construct($id, $expiresAt, $price, $serviceType, $distanceMeters);
     }
 
     /**
@@ -54,9 +56,9 @@ class LalamoveQuotation
         );
     }
 
-    public static function fromArray(array $attributes): self
+    public static function fromArray(array $attributes): static
     {
-        return new self(
+        return new static(
             (string) $attributes['id'],
             array_values($attributes['stopIds'] ?? []),
             Carbon::parse($attributes['expiresAt']),
@@ -67,22 +69,10 @@ class LalamoveQuotation
     }
 
     /**
-     * @return array{id: string, stopIds: string[], expiresAt: string, price: array|null, serviceType: string|null, distanceMeters: int|null}
+     * @return array{id: string, expiresAt: string, price: array|null, serviceType: string|null, distanceMeters: int|null, stopIds: string[]}
      */
     public function toArray(): array
     {
-        return [
-            'id' => $this->id,
-            'stopIds' => $this->stopIds,
-            'expiresAt' => $this->expiresAt->toIso8601ZuluString(),
-            'price' => $this->price?->toArray(),
-            'serviceType' => $this->serviceType,
-            'distanceMeters' => $this->distanceMeters,
-        ];
-    }
-
-    public function isExpired(?Carbon $now = null): bool
-    {
-        return ($now ?? Carbon::now())->greaterThanOrEqualTo($this->expiresAt);
+        return parent::toArray() + ['stopIds' => $this->stopIds];
     }
 }

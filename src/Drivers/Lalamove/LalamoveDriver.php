@@ -8,6 +8,7 @@ use Nextbyte\Courier\Clients\Lalamove\Lalamove;
 use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Contracts\Consignmentable;
+use Nextbyte\Courier\Contracts\Quotable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
@@ -15,7 +16,7 @@ use Nextbyte\Courier\Price;
 use Nextbyte\Courier\Shipment;
 use Nextbyte\Courier\ShipmentStatusPush;
 
-class LalamoveDriver extends Driver
+class LalamoveDriver extends Driver implements Quotable
 {
     /**
      * @var Lalamove
@@ -193,7 +194,7 @@ class LalamoveDriver extends Driver
     /**
      * Use the caller's quotation when given, otherwise quote now.
      *
-     * @throws CourierException when the given quotation has expired
+     * @throws CourierException when the given quotation is not a Lalamove one, or has expired
      */
     protected function resolveQuotation(array $attributes): LalamoveQuotation
     {
@@ -203,8 +204,12 @@ class LalamoveDriver extends Driver
             $quotation = LalamoveQuotation::fromArray($quotation);
         }
 
-        if (!$quotation instanceof LalamoveQuotation) {
+        if ($quotation === null) {
             return $this->quote($attributes);
+        }
+
+        if (!$quotation instanceof LalamoveQuotation) {
+            throw new CourierException('Lalamove can only book with a quotation from LalamoveDriver::quote().');
         }
 
         if ($quotation->isExpired()) {

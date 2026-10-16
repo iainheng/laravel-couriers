@@ -88,6 +88,9 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 
 ## Quotes before booking and the charged price
 
+- Quoting is an optional capability: drivers whose courier has a quotation API implement `Nextbyte\Courier\Contracts\Quotable` (`quote(array $attributes): Quotation`). Only `LalamoveDriver` does today, so apps should check `$driver instanceof Quotable` before calling `quote()`.
+- `Nextbyte\Courier\Quotation` is the generic result (`id`, `expiresAt`, `price`, `serviceType`, `distanceMeters`, `isExpired()`, `toArray()` / `fromArray()`); `LalamoveQuotation` extends it with `stopIds`. Lalamove refuses to book with a quotation that is not a `LalamoveQuotation`.
+
 - `LalamoveDriver::quote(array $attributes): LalamoveQuotation` gets a price without booking. It takes the same attributes as `createConsignment()`.
 - `LalamoveQuotation` holds the quotation ID, stop IDs, `expiresAt` (about 5 minutes), `price` (`Nextbyte\Courier\Price`: `total`, `currency`, `breakdown`), `serviceType` and `distanceMeters`. `toArray()` / `fromArray()` let an app keep it between requests (e.g. in the cache).
 - Pass it back as the `quotation` attribute (object or array) to `createConsignment()` / `createConsignmentWithSlip()` to book at exactly the quoted price. An expired quotation throws `CourierException` before any API call; without a `quotation`, the driver quotes and books in one go as before.
