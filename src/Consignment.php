@@ -100,6 +100,13 @@ class Consignment
      */
     public $proofOfDelivery;
 
+    /**
+     * What the courier charged for the consignment, when the courier reports it.
+     *
+     * @var Price|null
+     */
+    public $price;
+
     protected function __construct(array $attributes)
     {
         foreach ($attributes as $attribute => $value) {
