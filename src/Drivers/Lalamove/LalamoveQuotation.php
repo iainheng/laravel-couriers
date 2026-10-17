@@ -26,6 +26,8 @@ class LalamoveQuotation extends Quotation
      * @param int|null   $distanceMeters Route distance in metres
      * @param int[]      $routeSequence  Requested stop indexes in the order the driver visits them,
      *                                   e.g. [0, 2, 3, 1] when Lalamove optimised the route; empty if unknown
+     * @param array[]    $stops          The requested stops' coordinates and address, in request order, so
+     *                                   forStops() can line the quotation up with a booking; empty if unknown
      */
     public function __construct(
         string $id,
@@ -35,6 +37,7 @@ class LalamoveQuotation extends Quotation
         ?string $serviceType = null,
         ?int $distanceMeters = null,
         public readonly array $routeSequence = [],
+        public readonly array $stops = [],
     ) {
         parent::__construct($id, $expiresAt, $price, $serviceType, $distanceMeters);
     }
@@ -72,12 +75,96 @@ class LalamoveQuotation extends Quotation
             $data['serviceType'] ?? null,
             $distance !== null ? (int) $distance : null,
             $routeSequence,
+            array_map(fn (array $stop) => self::stopKey($stop), array_values($requestedStops)),
         );
     }
 
     /**
-     * Match Lalamove's (possibly reordered) stops to the requested ones by coordinates, or by address
-     * when a requested stop has no coordinates.
+     * The same quotation lined up with a booking's stops, which may list the same addresses in a
+     * different order than the quotation request did (e.g. orders loaded in another order).
+     *
+     * Stop IDs belong to addresses, not positions: booking with the quotation's positions would hand
+     * each recipient another recipient's address. Unchanged when the quotation does not know its stops.
+     *
+     * @param array $stops the `stops` being booked, in the order recipients refer to them
+     * @throws CourierException when the stops are not the ones quoted
+     */
+    public function forStops(array $stops): static
+    {
+        $stops = array_values($stops);
+
+        if ($this->stops === []) {
+            return $this;
+        }
+
+        if (count($stops) !== count($this->stops)) {
+            throw new CourierException('The stops changed after the price was quoted (' . count($this->stops) . ' quoted, ' . count($stops) . ' to book). Get a new price. Nothing was booked.');
+        }
+
+        $quotedIndexFor = [];
+        $unmatched = array_keys($this->stops);
+
+        foreach ($stops as $index => $stop) {
+            $match = self::findStop($stop, $this->stops, $unmatched);
+
+            if ($match === null) {
+                throw new CourierException('The stops changed after the price was quoted (stop ' . ($index + 1) . ': ' . ($stop['address'] ?? '?') . '). Get a new price. Nothing was booked.');
+            }
+
+            $quotedIndexFor[$index] = $match;
+            $unmatched = array_values(array_diff($unmatched, [$match]));
+        }
+
+        $bookingIndexFor = array_flip($quotedIndexFor);
+
+        return new static(
+            $this->id,
+            array_map(fn (int $quotedIndex) => $this->stopIds[$quotedIndex], $quotedIndexFor),
+            $this->expiresAt,
+            $this->price,
+            $this->serviceType,
+            $this->distanceMeters,
+            array_map(fn (int $quotedIndex) => $bookingIndexFor[$quotedIndex], $this->routeSequence),
+            array_map(fn (int $quotedIndex) => $this->stops[$quotedIndex], $quotedIndexFor),
+        );
+    }
+
+    /**
+     * The first of the candidate stops that is the same place as $stop, preferring one with the same
+     * address too, so two recipients at one building keep their own stop.
+     *
+     * @param int[] $candidates indexes into $stops
+     */
+    private static function findStop(array $stop, array $stops, array $candidates): ?int
+    {
+        $samePlace = array_values(array_filter($candidates, fn (int $index) => self::isSameStop($stop, $stops[$index])));
+
+        foreach ($samePlace as $index) {
+            if (trim((string) ($stop['address'] ?? '')) === trim((string) ($stops[$index]['address'] ?? ''))) {
+                return $index;
+            }
+        }
+
+        return $samePlace[0] ?? null;
+    }
+
+    /**
+     * @return array{coordinates: array{lat: string|null, lng: string|null}, address: string}
+     */
+    private static function stopKey(array $stop): array
+    {
+        return [
+            'coordinates' => [
+                'lat' => isset($stop['coordinates']['lat']) ? (string) $stop['coordinates']['lat'] : null,
+                'lng' => isset($stop['coordinates']['lng']) ? (string) $stop['coordinates']['lng'] : null,
+            ],
+            'address' => (string) ($stop['address'] ?? ''),
+        ];
+    }
+
+    /**
+     * Match Lalamove's (possibly reordered) stops to the requested ones by coordinates (and address, when
+     * two stops share coordinates), or by address when a requested stop has no coordinates.
      *
      * @return array{0: string[], 1: int[]} stopIds in request order, and requested indexes in driving order
      * @throws CourierException when a stop can't be matched
@@ -93,14 +180,10 @@ class LalamoveQuotation extends Quotation
         $unmatched = array_keys($responseStops);
 
         foreach ($requestedStops as $requestedIndex => $requested) {
-            $match = null;
+            $match = self::findStop($requested, $responseStops, $unmatched);
 
-            foreach ($unmatched as $position => $responseIndex) {
-                if (self::isSameStop($requested, $responseStops[$responseIndex])) {
-                    $match = $responseIndex;
-                    unset($unmatched[$position]);
-                    break;
-                }
+            if ($match !== null) {
+                $unmatched = array_values(array_diff($unmatched, [$match]));
             }
 
             if ($match === null) {
@@ -140,15 +223,16 @@ class LalamoveQuotation extends Quotation
             $attributes['serviceType'] ?? null,
             isset($attributes['distanceMeters']) ? (int) $attributes['distanceMeters'] : null,
             array_map('intval', array_values($attributes['routeSequence'] ?? [])),
+            array_values($attributes['stops'] ?? []),
         );
     }
 
     /**
-     * @return array{id: string, expiresAt: string, price: array|null, serviceType: string|null, distanceMeters: int|null, stopIds: string[], routeSequence: int[]}
+     * @return array{id: string, expiresAt: string, price: array|null, serviceType: string|null, distanceMeters: int|null, stopIds: string[], routeSequence: int[], stops: array[]}
      */
     public function toArray(): array
     {
-        return parent::toArray() + ['stopIds' => $this->stopIds, 'routeSequence' => $this->routeSequence];
+        return parent::toArray() + ['stopIds' => $this->stopIds, 'routeSequence' => $this->routeSequence, 'stops' => $this->stops];
     }
 
     /**

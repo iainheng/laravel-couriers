@@ -215,7 +215,9 @@ class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes
      */
     protected function placeOrder(array $attributes): array
     {
-        $quotation = $this->resolveQuotation($attributes);
+        // Stop IDs belong to addresses: line them up with this booking's stops, in case they are
+        // listed in another order than when the price was quoted.
+        $quotation = $this->resolveQuotation($attributes)->forStops(data_get($attributes, 'stops', []));
 
         logger()->info('Lalamove createConsignment', Arr::except($attributes, 'quotation') + ['quotationId' => $quotation->id]);
 
