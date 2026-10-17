@@ -64,6 +64,8 @@ return [
         'webhook_url' => env('LALAMOVE_WEBHOOK_URL', ''),
         // Default service type used when none is specified at order creation
         'service_type' => env('LALAMOVE_SERVICE_TYPE', 'MOTORCYCLE'),
+        // City deliveries start from, as Lalamove's UN/LOCODE (e.g. "KUL"), for listing its vehicles
+        'city' => env('LALAMOVE_CITY', ''),
 
     ],
 ];

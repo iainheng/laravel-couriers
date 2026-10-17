@@ -9,15 +9,17 @@ use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Contracts\Cancellable;
 use Nextbyte\Courier\Contracts\Consignmentable;
+use Nextbyte\Courier\Contracts\ProvidesServiceTypes;
 use Nextbyte\Courier\Contracts\Quotable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Price;
+use Nextbyte\Courier\ServiceType;
 use Nextbyte\Courier\Shipment;
 use Nextbyte\Courier\ShipmentStatusPush;
 
-class LalamoveDriver extends Driver implements Cancellable, Quotable
+class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes, Quotable
 {
     /**
      * @var Lalamove
@@ -46,6 +48,42 @@ class LalamoveDriver extends Driver implements Cancellable, Quotable
         $this->client->config($config);
 
         return parent::config($config);
+    }
+
+    /**
+     * The vehicles Lalamove offers in a city, from its City Info API.
+     *
+     * The city is Lalamove's UN/LOCODE for it, with or without the market, e.g. "KUL" or
+     * "MY KUL"; it defaults to the `city` config (LALAMOVE_CITY). A market with a single
+     * city needs no config.
+     *
+     * @inheritDoc
+     */
+    public function serviceTypes(?string $city = null): array
+    {
+        $cities = data_get($this->client->getCities(), 'data', []);
+        $wanted = strtoupper(trim((string) ($city ?? data_get($this->config, 'city', ''))));
+
+        $match = $wanted === ''
+            ? (count($cities) === 1 ? $cities[0] : null)
+            : collect($cities)->first(function (array $candidate) use ($wanted) {
+                $locode = strtoupper((string) ($candidate['locode'] ?? ''));
+
+                return $locode === $wanted || substr($locode, -strlen($wanted) - 1) === ' ' . $wanted;
+            });
+
+        if (!$match) {
+            $available = collect($cities)
+                ->map(fn (array $candidate) => ($candidate['locode'] ?? '?') . ' (' . ($candidate['name'] ?? '?') . ')')
+                ->implode(', ');
+
+            throw new CourierException(
+                ($wanted === '' ? 'Set LALAMOVE_CITY to the city deliveries start from' : "Lalamove does not serve city {$wanted}")
+                . ($available ? ". Cities: {$available}." : '.')
+            );
+        }
+
+        return array_map(fn (array $service) => ServiceType::fromLalamove($service), $match['services'] ?? []);
     }
 
     /**

@@ -160,4 +160,18 @@ class LalamoveClientTest extends TestCase
 
         $this->assertFalse($client->cancelOrder('3607496166826754985'));
     }
+
+    public function test_it_gets_the_markets_cities_and_their_vehicles()
+    {
+        $client = $this->client();
+        $this->responses->append(new Response(200, [], json_encode(['data' => [['locode' => 'MY KUL', 'services' => [['key' => 'CAR']]]]])));
+
+        $cities = $client->getCities();
+
+        $request = $this->responses->getLastRequest();
+        $this->assertSame('GET', $request->getMethod());
+        $this->assertSame('/v3/cities', $request->getUri()->getPath());
+        $this->assertSame('MY', $request->getHeaderLine('Market'));
+        $this->assertSame('MY KUL', $cities['data'][0]['locode']);
+    }
 }

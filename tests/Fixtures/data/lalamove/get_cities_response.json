@@ -1,0 +1,184 @@
+{
+  "data": [
+    {
+      "locode": "MY KUL",
+      "name": "Kuala Lumpur",
+      "services": [
+        {
+          "key": "MOTORCYCLE",
+          "description": "Ideal for groceries, food, small parcels (starting at 2kg)",
+          "load": {
+            "value": "10",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "0.3",
+              "unit": "m"
+            },
+            "width": {
+              "value": "0.3",
+              "unit": "m"
+            },
+            "height": {
+              "value": "0.3",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        },
+        {
+          "key": "CAR",
+          "description": "Ideal for groceries, food, flowers, parcels, fragile goods",
+          "load": {
+            "value": "40",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "0.5",
+              "unit": "m"
+            },
+            "width": {
+              "value": "0.5",
+              "unit": "m"
+            },
+            "height": {
+              "value": "0.5",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        },
+        {
+          "key": "4X4",
+          "description": "Ex: Hilux/Triton - small boxes, small furniture, bicycle",
+          "load": {
+            "value": "250",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "1.2",
+              "unit": "m"
+            },
+            "width": {
+              "value": "0.9",
+              "unit": "m"
+            },
+            "height": {
+              "value": "0.9",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        },
+        {
+          "key": "VAN",
+          "description": "Ex: Vanette, GranMax - small fridge, bike, washing machine",
+          "load": {
+            "value": "500",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "1.7",
+              "unit": "m"
+            },
+            "width": {
+              "value": "1",
+              "unit": "m"
+            },
+            "height": {
+              "value": "1.2",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        },
+        {
+          "key": "TRUCK330",
+          "description": "Small items delivery - small size bed, 2-seater sofa, fridge",
+          "load": {
+            "value": "1000",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "2.9",
+              "unit": "m"
+            },
+            "width": {
+              "value": "1.5",
+              "unit": "m"
+            },
+            "height": {
+              "value": "1.5",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        },
+        {
+          "key": "TRUCK550",
+          "description": "Medium items delivery - Queen size bed, wardrobe, vases",
+          "load": {
+            "value": "2500",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "4.2",
+              "unit": "m"
+            },
+            "width": {
+              "value": "2",
+              "unit": "m"
+            },
+            "height": {
+              "value": "2",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        }
+      ]
+    },
+    {
+      "locode": "MY KCH",
+      "name": "Kuching(Sandbox)",
+      "services": [
+        {
+          "key": "CAR",
+          "description": "CAR",
+          "load": {
+            "value": "1000",
+            "unit": "kg"
+          },
+          "dimensions": {
+            "length": {
+              "value": "5",
+              "unit": "m"
+            },
+            "width": {
+              "value": "2",
+              "unit": "m"
+            },
+            "height": {
+              "value": "2",
+              "unit": "m"
+            }
+          },
+          "specialRequests": [],
+          "deliveryItemSpecification": {}
+        }
+      ]
+    }
+  ]
+}

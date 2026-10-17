@@ -61,6 +61,7 @@ LALAMOVE_API_KEY=
 LALAMOVE_API_SECRET=
 LALAMOVE_MARKET=MY
 LALAMOVE_ORDER_NUMBER_KEY=referenceId
+LALAMOVE_CITY=KUL          # city deliveries start from, for serviceTypes()
 ```
 
 ## Status map
@@ -116,3 +117,18 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 - Before v1.11.0 the driver took stopIds in response order and gave them to recipients by request position, so a reordered multi-drop booking attached recipients' names, phones and remarks to other recipients' addresses.
 - `LalamoveQuotation::fromResponse($response, $requestedStops)` now matches returned stops to requested ones by coordinates (Lalamove rounds to 7 decimals) or address, puts `stopIds` back in request order, and records `routeSequence` (requested indexes in driving order). `dropOffNumber($i)` gives a requested drop-off's position in the route. Unmatched stops throw before anything is booked. Verified in the sandbox.
 - `Consignment::$trackingUrl` carries Lalamove's `shareLink` (live tracking page).
+
+## Vehicles and their limits (`Contracts\ProvidesServiceTypes`)
+
+`serviceTypes(?string $city = null)` lists the vehicles Lalamove offers in a city, from its City Info
+API (`GET /v3/cities`), as `ServiceType` objects: `key` (send it as `serviceType`), Lalamove's
+`description`, and the largest load normalised to `maxWeightKg` and `lengthCm` / `widthCm` / `heightCm`.
+
+The city is Lalamove's UN/LOCODE with or without the market (`KUL` or `MY KUL`). It defaults to
+`LALAMOVE_CITY`; a market with a single city needs none. An unknown or missing city throws a
+`CourierException` listing the cities Lalamove serves.
+
+Kuala Lumpur (sandbox, Oct 2026): MOTORCYCLE 10 kg 30×30×30 cm · CAR 40 kg 50×50×50 cm ·
+4X4 250 kg · VAN 500 kg · TRUCK330 1,000 kg · TRUCK550 2,500 kg. Other cities add LARGEVAN.
+The list changes by city and over time, so fetch it rather than hard-coding it; it rarely changes,
+so cache it (a day is plenty).
