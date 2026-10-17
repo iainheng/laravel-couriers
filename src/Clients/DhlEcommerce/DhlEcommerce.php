@@ -3,7 +3,9 @@
 namespace Nextbyte\Courier\Clients\DhlEcommerce;
 
 use Carbon\Carbon;
+use GuzzleHttp\Exception\BadResponseException;
 use GuzzleHttp\Exception\ClientException;
+use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Cache\CacheManager;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
@@ -126,37 +128,56 @@ class DhlEcommerce
      */
     public function login()
     {
-        try {
-            $url = $this->getBaseUrl() . '/rest/v1/OAuth/AccessToken';
+        $url = $this->getBaseUrl() . '/rest/v1/OAuth/AccessToken';
 
-            $options = [
+        $this->debug('Getting new access token.');
+
+        try {
+            // DHL only accepts the client ID and password as query parameters.
+            $result = $this->client->get($url, [
                 'query' => [
                     'clientId' => $this->clientId,
                     'password' => $this->password,
-                ]
-            ];
-
-            $this->debug('Getting new access token.');
-
-            $result = $this->client->get($url, $options);
-
-            $response = new AccessTokenApiResponse(json_decode($result->getBody()->getContents(), true));
-
-            $this->validateAndThrowResponse($response);
-
-            $tokenData = [
-                'token' => data_get($response->getData(), 'token'),
-                'expires' => now()->addSeconds((int) data_get($response->getData(), 'expires_in_seconds', 0))
-            ];
-
-            $this->cache->put('dhl-ecommerce', $tokenData);
-            $this->accessToken = $tokenData;
-
-            $this->debug($this->accessToken);
-
-        } catch (ClientException $exception) {
-            throw $this->determineException($exception);
+                ],
+            ]);
+        } catch (GuzzleException $exception) {
+            throw $this->loginFailure($exception);
         }
+
+        $response = new AccessTokenApiResponse(json_decode((string) $result->getBody(), true));
+
+        $this->validateAndThrowResponse($response);
+
+        // DHL documents the field as expire_in_seconds; older code read expires_in_seconds.
+        $lifetime = data_get($response->getData(), 'expire_in_seconds') ?? data_get($response->getData(), 'expires_in_seconds', 0);
+
+        $tokenData = [
+            'token' => data_get($response->getData(), 'token'),
+            'expires' => now()->addSeconds((int) $lifetime),
+        ];
+
+        $this->cache->put('dhl-ecommerce', $tokenData);
+        $this->accessToken = $tokenData;
+
+        $this->debug('Got a new access token, valid until ' . $tokenData['expires']->toDateTimeString() . '.');
+    }
+
+    /**
+     * A login failure that can be shown and logged safely.
+     *
+     * The login URL carries the client ID and password, and Guzzle repeats the URL in its
+     * exception messages, so the original exception is deliberately not chained: Laravel
+     * logs the whole chain.
+     */
+    protected function loginFailure(GuzzleException $exception): CourierException
+    {
+        if ($exception instanceof BadResponseException) {
+            $status = $exception->getResponse()->getStatusCode();
+
+            return new CourierException("DHL eCommerce login failed (HTTP {$status}).", $status);
+        }
+
+        return new CourierException('DHL eCommerce login failed: could not reach DHL.');
     }
 
     /**
@@ -195,7 +216,7 @@ class DhlEcommerce
 //                $options['json'] = $parameters;
 //            }
 
-            $this->debug(json_encode($postData));
+            $this->debug(json_encode($this->withoutAccessToken($postData)));
 
             $res = $this->client->post($url, $options);
             $result = json_decode($res->getBody()->getContents(), true);
@@ -208,7 +229,7 @@ class DhlEcommerce
         } catch (ClientException $exception) {
             throw $this->determineException($exception);
         } catch (\GuzzleHttp\Exception\RequestException $ex) {
-            $this->debug($ex->getResponse()->getBody()->getContents());
+            $this->debug((string) $ex->getResponse()?->getBody());
             throw $ex;
         }
     }
@@ -392,6 +413,20 @@ class DhlEcommerce
         }
 
         return data_get($this->accessToken, 'token');
+    }
+
+    /**
+     * A copy of a request payload with its access token masked, for logging.
+     */
+    protected function withoutAccessToken(array $payload): array
+    {
+        array_walk_recursive($payload, function (&$value, $key) {
+            if ($key === 'accessToken') {
+                $value = '***';
+            }
+        });
+
+        return $payload;
     }
 
     /**
