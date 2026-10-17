@@ -109,3 +109,10 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 - **Lalamove** cancels by its orderId (the consignment/tracking number).
 - **DHL eCommerce** cancels by the **shipmentID** the label was created with, not its tracking number (`deliveryConfirmationNo`): `DhlEcommerce::deleteShipment()` calls `POST /rest/v2/Label/Delete` (`deleteShipmentReq`, messageType `DELETESHIPMENT`). DHL allows it for domestic shipments before pick-up/processing, and for international ones before close-out ([docs](https://api.dhlecommerce.dhl.com/API/docs/v2/deleteshipment.html)).
 - Not yet verified against DHL: its test environment (`apitest.dhlecommerce.asia`) answered 502 for every request on 17 Oct 2026, so `DeleteShipmentResponse` follows the documented field tables. Also unverified: whether a deleted shipmentID can be labelled again (DHL rejects re-used IDs when creating labels).
+
+## Route optimisation and stop order
+
+- With `isRouteOptimized`, Lalamove returns the quotation's stops **in driving order**, not request order (sandbox, 17 Oct 2026: requested far, near, middle came back near, middle, far; RM 38.50 instead of RM 67.80). The Place Order and Get Order responses list stops in driving order too, without stopIds or remarks.
+- Before v1.11.0 the driver took stopIds in response order and gave them to recipients by request position, so a reordered multi-drop booking attached recipients' names, phones and remarks to other recipients' addresses.
+- `LalamoveQuotation::fromResponse($response, $requestedStops)` now matches returned stops to requested ones by coordinates (Lalamove rounds to 7 decimals) or address, puts `stopIds` back in request order, and records `routeSequence` (requested indexes in driving order). `dropOffNumber($i)` gives a requested drop-off's position in the route. Unmatched stops throw before anything is booked. Verified in the sandbox.
+- `Consignment::$trackingUrl` carries Lalamove's `shareLink` (live tracking page).

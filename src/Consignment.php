@@ -107,6 +107,13 @@ class Consignment
      */
     public $price;
 
+    /**
+     * A page where anyone with the link can follow the delivery (e.g. Lalamove's shareLink).
+     *
+     * @var string|null
+     */
+    public $trackingUrl;
+
     protected function __construct(array $attributes)
     {
         foreach ($attributes as $attribute => $value) {
