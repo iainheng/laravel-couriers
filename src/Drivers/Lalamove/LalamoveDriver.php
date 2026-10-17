@@ -386,6 +386,21 @@ class LalamoveDriver extends Driver implements Quotable
     }
 
     /**
+     * Cancel a Lalamove order, or explain why it can't be.
+     *
+     * Lalamove only allows this while it is finding a driver or shortly after one
+     * accepts; otherwise it answers ERR_CANCELLATION. Unlike cancelConsignment(),
+     * which returns false, this throws with Lalamove's own message.
+     *
+     * @param string $consignmentNumber Lalamove orderId
+     * @throws CourierException
+     */
+    public function cancelConsignmentOrFail(string $consignmentNumber): void
+    {
+        $this->client->cancelOrderOrFail($consignmentNumber);
+    }
+
+    /**
      * Get the assigned driver's current location and details for an order.
      *
      * @param string $orderId
@@ -426,11 +441,11 @@ class LalamoveDriver extends Driver implements Quotable
             case 'COMPLETED':
                 return ShipmentStatus::Delivered;
             case 'CANCELED':
-                return ShipmentStatus::ReturnStart;
+                return ShipmentStatus::Cancelled;
             case 'REJECTED':
                 return ShipmentStatus::Rejected;
             case 'EXPIRED':
-                return ShipmentStatus::OnHold;
+                return ShipmentStatus::Expired;
         }
 
         return ShipmentStatus::Unknown;

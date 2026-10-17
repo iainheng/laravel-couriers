@@ -109,11 +109,22 @@ class Lalamove
     public function cancelOrder(string $orderId): bool
     {
         try {
-            $this->request('DELETE', "/v3/orders/{$orderId}");
+            $this->cancelOrderOrFail($orderId);
             return true;
         } catch (CourierException $e) {
             return false;
         }
+    }
+
+    /**
+     * Cancel an order, throwing Lalamove's reason when it refuses (e.g. ERR_CANCELLATION).
+     *
+     * @param string $orderId
+     * @throws CourierException
+     */
+    public function cancelOrderOrFail(string $orderId): void
+    {
+        $this->request('DELETE', "/v3/orders/{$orderId}");
     }
 
     /**

@@ -71,9 +71,9 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 | ON_GOING | Accepted |
 | PICKED_UP | Pickup |
 | COMPLETED | Delivered |
-| CANCELED | ReturnStart |
+| CANCELED | Cancelled |
 | REJECTED | DeliveryAttempted |
-| EXPIRED | OnHold |
+| EXPIRED | Expired |
 | (anything else) | Unknown |
 
 ## Run tests
@@ -96,3 +96,9 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 - Pass it back as the `quotation` attribute (object or array) to `createConsignment()` / `createConsignmentWithSlip()` to book at exactly the quoted price. An expired quotation throws `CourierException` before any API call; without a `quotation`, the driver quotes and books in one go as before.
 - `createConsignmentWithSlip()` sets `Consignment::$price` to what Lalamove charged (from the Place Order response's `priceBreakdown`).
 - Unit tests: `test_it_can_quote_without_booking`, `test_create_consignment_books_with_the_given_quotation`, `test_an_expired_quotation_is_refused_without_calling_lalamove`, `test_create_consignment_with_slip_reports_the_charged_price`, and others in `LalamoveTest`.
+
+## Cancelling
+
+- `LalamoveDriver::cancelConsignmentOrFail($orderId)` cancels and throws `CourierException` with Lalamove's reason; `cancelConsignment()` keeps returning `false` instead.
+- Sandbox, 17 Oct 2026: cancelling while `ASSIGNING_DRIVER` works; cancelling again answers `ERR_CANCELLATION: Cannot cancel order.` Lalamove's docs allow cancelling up to about 5 minutes after a driver is matched.
+- Edit Order (`PATCH /v3/orders/{id}`) answered `ERR_ORDER_EDIT: Cannot edit order` for every edit tried (removing a drop-off, or only changing a remark) on a fresh order. It appears to need enabling for the account, so removing a single stop is not supported.
