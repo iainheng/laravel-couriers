@@ -116,7 +116,7 @@ class LalamoveDriver extends Driver implements Cancellable, Quotable
             'isRouteOptimized' => data_get($attributes, 'isRouteOptimized'),
         ], fn($v) => $v !== null && $v !== []);
 
-        return LalamoveQuotation::fromResponse($this->client->createQuotation($quotationPayload) ?: []);
+        return LalamoveQuotation::fromResponse($this->client->createQuotation($quotationPayload) ?: [], $quotationPayload['stops'] ?? []);
     }
 
     /**
@@ -164,6 +164,7 @@ class LalamoveDriver extends Driver implements Cancellable, Quotable
             'orderNumber' => data_get($attributes, 'metadata.referenceId'),
             'slips' => [],
             'price' => Price::fromLalamove(data_get($response, 'data.priceBreakdown')),
+            'trackingUrl' => data_get($response, 'data.shareLink'),
         ]);
     }
 

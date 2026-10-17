@@ -339,7 +339,7 @@ class LalamoveTest extends TestCase
         );
 
         $mockClient = m::mock(Lalamove::class);
-        $mockClient->shouldReceive('createQuotation')->once()->andReturn($quotationFixture);
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
         $mockClient->shouldReceive('createOrder')->once()->andReturn($orderFixture);
 
         $driver = new LalamoveDriver($mockClient);
@@ -357,6 +357,30 @@ class LalamoveTest extends TestCase
         return json_decode(file_get_contents(__DIR__ . '/../Fixtures/data/lalamove/' . $name . '.json'), true);
     }
 
+    /**
+     * The sample quotation response, with its stops replaced by the requested ones
+     * (Lalamove echoes each stop's coordinates and address, adding a stopId).
+     *
+     * @param int[]|null $drivingOrder requested stop indexes in the order Lalamove returns them
+     */
+    protected function quotationFor(array $payload, ?array $drivingOrder = null): array
+    {
+        $response = $this->fixture('create_quotation_response');
+        $stops = array_values($payload['stops']);
+        $drivingOrder ??= array_keys($stops);
+
+        $response['data']['stops'] = array_map(fn (int $i) => [
+            'stopId' => 'STOP-' . $i,
+            'coordinates' => isset($stops[$i]['coordinates']) ? [
+                'lat' => number_format((float) $stops[$i]['coordinates']['lat'], 7, '.', ''),
+                'lng' => number_format((float) $stops[$i]['coordinates']['lng'], 7, '.', ''),
+            ] : ['lat' => '3.0000000', 'lng' => '101.0000000'],
+            'address' => $stops[$i]['address'],
+        ], $drivingOrder);
+
+        return $response;
+    }
+
     protected function freshQuotation(): LalamoveQuotation
     {
         return new LalamoveQuotation(
@@ -372,13 +396,14 @@ class LalamoveTest extends TestCase
     public function test_it_can_quote_without_booking()
     {
         $mockClient = m::mock(Lalamove::class);
-        $mockClient->shouldReceive('createQuotation')->once()->andReturn($this->fixture('create_quotation_response'));
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
         $mockClient->shouldNotReceive('createOrder');
 
         $quotation = (new LalamoveDriver($mockClient))->quote($this->makeOrder('13993-000')->toConsignmentableArray('lalamove'));
 
         $this->assertSame('3487460355004146198', $quotation->id);
-        $this->assertSame(['3487460355004146199', '3487460355004146200'], $quotation->stopIds);
+        $this->assertSame(['STOP-0', 'STOP-1'], $quotation->stopIds);
+        $this->assertSame([0, 1], $quotation->routeSequence);
         $this->assertSame('24.6', $quotation->price->total);
         $this->assertSame('MYR', $quotation->price->currency);
         $this->assertSame(['base' => '4.0', 'extraMileage' => '20.6', 'totalExcludePriorityFee' => '24.6'], $quotation->price->breakdown);
@@ -501,7 +526,7 @@ class LalamoveTest extends TestCase
     public function test_create_consignment_with_slip_reports_the_charged_price()
     {
         $mockClient = m::mock(Lalamove::class);
-        $mockClient->shouldReceive('createQuotation')->once()->andReturn($this->fixture('create_quotation_response'));
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
         $mockClient->shouldReceive('createOrder')->once()->andReturn($this->fixture('create_order_response'));
 
         $consignment = (new LalamoveDriver($mockClient))
@@ -544,5 +569,124 @@ class LalamoveTest extends TestCase
     {
         $this->assertSame('Order was cancelled', ShipmentStatus::getDescription(ShipmentStatus::Cancelled));
         $this->assertSame('Order expired before a driver was found', ShipmentStatus::getDescription(ShipmentStatus::Expired));
+    }
+
+    /**
+     * A pickup and three drop-offs, sent in a deliberately poor order (far, near, middle).
+     */
+    protected function multiDropAttributes(): array
+    {
+        return [
+            'serviceType' => 'MOTORCYCLE',
+            'stops' => [
+                ['coordinates' => ['lat' => '3.00985952', 'lng' => '101.75597'], 'address' => 'Warehouse, Balakong'],
+                ['coordinates' => ['lat' => '3.0738', 'lng' => '101.5183'], 'address' => 'Far, Shah Alam'],
+                ['coordinates' => ['lat' => '2.9935', 'lng' => '101.7874'], 'address' => 'Near, Kajang'],
+                ['coordinates' => ['lat' => '3.139', 'lng' => '101.6869'], 'address' => 'Middle, KLCC'],
+            ],
+            'sender' => ['stopIndex' => 0, 'name' => 'Warehouse', 'phone' => '+60123456789'],
+            'recipients' => [
+                ['stopIndex' => 1, 'name' => 'Far Recipient', 'phone' => '+60111111111', 'remarks' => 'Order FAR'],
+                ['stopIndex' => 2, 'name' => 'Near Recipient', 'phone' => '+60122222222', 'remarks' => 'Order NEAR'],
+                ['stopIndex' => 3, 'name' => 'Middle Recipient', 'phone' => '+60133333333', 'remarks' => 'Order MIDDLE'],
+            ],
+            'isRouteOptimized' => true,
+        ];
+    }
+
+    public function test_recipients_keep_their_own_stop_when_lalamove_optimises_the_route()
+    {
+        $mockClient = m::mock(Lalamove::class);
+        // Lalamove reorders to pickup, near, middle, far.
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload, [0, 2, 3, 1]));
+        $mockClient->shouldReceive('createOrder')->once()
+            ->withArgs(function (array $order) {
+                $stopIdFor = collect($order['recipients'])->pluck('stopId', 'remarks');
+
+                return $order['sender']['stopId'] === 'STOP-0'
+                    && $stopIdFor['Order FAR'] === 'STOP-1'
+                    && $stopIdFor['Order NEAR'] === 'STOP-2'
+                    && $stopIdFor['Order MIDDLE'] === 'STOP-3';
+            })
+            ->andReturn($this->fixture('create_order_response'));
+
+        $orderId = (new LalamoveDriver($mockClient))->createConsignment($this->multiDropAttributes());
+
+        $this->assertSame('3487384979687051627', $orderId);
+    }
+
+    public function test_the_quotation_records_the_driving_order_and_each_drop_off_number()
+    {
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload, [0, 2, 3, 1]));
+
+        $quotation = (new LalamoveDriver($mockClient))->quote($this->multiDropAttributes());
+
+        $this->assertSame(['STOP-0', 'STOP-1', 'STOP-2', 'STOP-3'], $quotation->stopIds);
+        $this->assertSame([0, 2, 3, 1], $quotation->routeSequence);
+        $this->assertSame(3, $quotation->dropOffNumber(1), 'Far is the last drop-off.');
+        $this->assertSame(1, $quotation->dropOffNumber(2), 'Near is the first drop-off.');
+        $this->assertSame(2, $quotation->dropOffNumber(3));
+        $this->assertNull($quotation->dropOffNumber(0), 'The pickup is not a drop-off.');
+    }
+
+    public function test_stops_without_coordinates_are_matched_by_address()
+    {
+        $attributes = $this->multiDropAttributes();
+        unset($attributes['stops'][2]['coordinates']);
+
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload, [0, 2, 3, 1]));
+
+        $quotation = (new LalamoveDriver($mockClient))->quote($attributes);
+
+        $this->assertSame(['STOP-0', 'STOP-1', 'STOP-2', 'STOP-3'], $quotation->stopIds);
+    }
+
+    public function test_two_drop_offs_at_the_same_address_get_their_own_stops()
+    {
+        $attributes = $this->multiDropAttributes();
+        $attributes['stops'][3] = $attributes['stops'][2];
+
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload, [0, 3, 2, 1]));
+
+        $quotation = (new LalamoveDriver($mockClient))->quote($attributes);
+
+        $this->assertCount(4, array_unique($quotation->stopIds));
+    }
+
+    public function test_a_quotation_whose_stops_do_not_match_the_request_is_refused()
+    {
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('createQuotation')->once()->andReturn($this->fixture('create_quotation_response'));
+        $mockClient->shouldNotReceive('createOrder');
+
+        $this->expectException(CourierException::class);
+        $this->expectExceptionMessage('Nothing was booked.');
+
+        (new LalamoveDriver($mockClient))->createConsignment($this->multiDropAttributes());
+    }
+
+    public function test_the_consignment_carries_lalamoves_tracking_link()
+    {
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
+        $mockClient->shouldReceive('createOrder')->once()->andReturn($this->fixture('create_order_response'));
+
+        $consignment = (new LalamoveDriver($mockClient))->createConsignmentWithSlip($this->makeOrder('13993-000')->toConsignmentableArray('lalamove'));
+
+        $this->assertStringStartsWith('https://share.sandbox.lalamove.com?', $consignment->trackingUrl);
+    }
+
+    public function test_a_quotation_saved_before_route_order_was_recorded_still_loads()
+    {
+        $stored = $this->freshQuotation()->toArray();
+        unset($stored['routeSequence']);
+
+        $quotation = LalamoveQuotation::fromArray($stored);
+
+        $this->assertSame([], $quotation->routeSequence);
+        $this->assertNull($quotation->dropOffNumber(1));
     }
 }
