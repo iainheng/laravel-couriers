@@ -29,6 +29,8 @@ final class ShipmentStatus extends Enum
     const DriverAssigned = 'driver-assigned';
     const DriverRejected = 'driver-rejected';
     const Rejected = 'rejected';
+    const Cancelled = 'cancelled';
+    const Expired = 'expired';
     const Unknown = 'unknown';
 
     /**
@@ -95,6 +97,12 @@ final class ShipmentStatus extends Enum
                 break;
             case self::Rejected:
                 $name = 'Order was rejected by courier';
+                break;
+            case self::Cancelled:
+                $name = 'Order was cancelled';
+                break;
+            case self::Expired:
+                $name = 'Order expired before a driver was found';
                 break;
             case self::Undelivered:
                 $name = 'Parcel is undelivered';

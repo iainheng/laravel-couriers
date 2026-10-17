@@ -300,9 +300,9 @@ class LalamoveTest extends TestCase
             'on_going maps to Accepted'              => ['ON_GOING', ShipmentStatus::Accepted],
             'picked_up maps to Pickup'               => ['PICKED_UP', ShipmentStatus::Pickup],
             'completed maps to Delivered'            => ['COMPLETED', ShipmentStatus::Delivered],
-            'canceled maps to ReturnStart'           => ['CANCELED', ShipmentStatus::ReturnStart],
+            'canceled maps to Cancelled'             => ['CANCELED', ShipmentStatus::Cancelled],
             'rejected maps to Rejected'              => ['REJECTED', ShipmentStatus::Rejected],
-            'expired maps to OnHold'                 => ['EXPIRED', ShipmentStatus::OnHold],
+            'expired maps to Expired'                => ['EXPIRED', ShipmentStatus::Expired],
             'unknown status maps to Unknown'         => ['SOME_UNKNOWN_STATUS', ShipmentStatus::Unknown],
         ];
     }
@@ -526,5 +526,23 @@ class LalamoveTest extends TestCase
         $this->assertSame($quotation->serviceType, $restored->serviceType);
         $this->assertSame($quotation->expiresAt->getTimestamp(), $restored->expiresAt->getTimestamp());
         $this->assertFalse($restored->isExpired());
+    }
+
+    public function test_cancel_consignment_or_fail_passes_on_lalamoves_reason()
+    {
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('cancelOrderOrFail')->once()->with('3607496166826754985')
+            ->andThrow(new CourierException('ERR_CANCELLATION: Cannot cancel order.', 422));
+
+        $this->expectException(CourierException::class);
+        $this->expectExceptionMessage('ERR_CANCELLATION: Cannot cancel order.');
+
+        (new LalamoveDriver($mockClient))->cancelConsignmentOrFail('3607496166826754985');
+    }
+
+    public function test_cancelled_and_expired_statuses_describe_themselves()
+    {
+        $this->assertSame('Order was cancelled', ShipmentStatus::getDescription(ShipmentStatus::Cancelled));
+        $this->assertSame('Order expired before a driver was found', ShipmentStatus::getDescription(ShipmentStatus::Expired));
     }
 }

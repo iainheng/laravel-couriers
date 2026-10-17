@@ -129,4 +129,35 @@ class LalamoveClientTest extends TestCase
         $this->assertSame('rest.sandbox.lalamove.com', $request->getUri()->getHost());
         $this->assertStringStartsWith('hmac pk_test_key:', $request->getHeaderLine('Authorization'));
     }
+
+    public function test_cancelling_an_order_sends_a_delete_for_it()
+    {
+        $client = $this->client();
+        $this->responses->append(new Response(204));
+
+        $client->cancelOrderOrFail('3607496166826754985');
+
+        $request = $this->responses->getLastRequest();
+        $this->assertSame('DELETE', $request->getMethod());
+        $this->assertSame('/v3/orders/3607496166826754985', $request->getUri()->getPath());
+    }
+
+    public function test_a_refused_cancellation_explains_why()
+    {
+        $client = $this->client();
+        $this->responses->append(new Response(422, [], '{"errors":[{"id":"ERR_CANCELLATION","message":"Cannot cancel order."}]}'));
+
+        $exception = $this->catchCourierException(fn () => $client->cancelOrderOrFail('3607496166826754985'));
+
+        $this->assertSame('ERR_CANCELLATION: Cannot cancel order.', $exception->getMessage());
+        $this->assertSame(422, $exception->getCode());
+    }
+
+    public function test_cancel_order_still_returns_false_when_refused()
+    {
+        $client = $this->client();
+        $this->responses->append(new Response(422, [], '{"errors":[{"id":"ERR_CANCELLATION","message":"Cannot cancel order."}]}'));
+
+        $this->assertFalse($client->cancelOrder('3607496166826754985'));
+    }
 }
