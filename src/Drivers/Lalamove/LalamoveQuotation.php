@@ -199,7 +199,10 @@ class LalamoveQuotation extends Quotation
         return [array_values($stopIds), array_values($routeSequence)];
     }
 
-    private static function isSameStop(array $requested, array $returned): bool
+    /**
+     * Whether two stops are the same place: matching coordinates, or the same address when either has none.
+     */
+    public static function isSameStop(array $requested, array $returned): bool
     {
         $lat = data_get($requested, 'coordinates.lat');
         $lng = data_get($requested, 'coordinates.lng');

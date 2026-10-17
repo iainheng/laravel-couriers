@@ -132,3 +132,19 @@ Kuala Lumpur (sandbox, Oct 2026): MOTORCYCLE 10 kg 30×30×30 cm · CAR 40 kg 50
 4X4 250 kg · VAN 500 kg · TRUCK330 1,000 kg · TRUCK550 2,500 kg. Other cities add LARGEVAN.
 The list changes by city and over time, so fetch it rather than hard-coding it; it rarely changes,
 so cache it (a day is plenty).
+
+## Each recipient at their own address
+
+Lalamove's stop IDs belong to addresses. `LalamoveQuotation` keeps the stops it was quoted for, and
+`forStops()` lines a quotation up with a booking that lists the same stops in another order, so each
+recipient gets the stop ID of their own address (two stops at one building are told apart by address).
+
+After booking, `placeOrder()` checks the stops Lalamove returns (or fetches the order when the response
+has none): every recipient's name must be at the coordinates they were booked for. If not, the order
+is cancelled and a `CourierException` names who went where; if it cannot be cancelled, the message
+says to cancel it in Lalamove now. Names are compared ignoring case, spacing and punctuation, and a
+name Lalamove shortened still matches. When Lalamove does not say who is at each stop, the booking
+stands and a warning is logged.
+
+`LalamoveQuoteStopOrderTest` books every quote order × booking order × several route orders;
+`LalamoveRecipientCheckTest` covers the after-booking check.

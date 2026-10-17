@@ -333,14 +333,10 @@ class LalamoveTest extends TestCase
             file_get_contents(__DIR__ . '/../Fixtures/data/lalamove/create_quotation_response.json'),
             true
         );
-        $orderFixture = json_decode(
-            file_get_contents(__DIR__ . '/../Fixtures/data/lalamove/create_order_response.json'),
-            true
-        );
 
         $mockClient = m::mock(Lalamove::class);
         $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
-        $mockClient->shouldReceive('createOrder')->once()->andReturn($orderFixture);
+        $mockClient->shouldReceive('createOrder')->once()->andReturnUsing(fn (array $order) => $this->orderResponse($order));
 
         $driver = new LalamoveDriver($mockClient);
         $consignment = $driver->createConsignmentWithSlip($this->makeOrder('13993-000')->toConsignmentableArray('lalamove'));
@@ -378,7 +374,44 @@ class LalamoveTest extends TestCase
             'address' => $stops[$i]['address'],
         ], $drivingOrder);
 
+        $this->quotedStops = array_column($response['data']['stops'], null, 'stopId');
+
         return $response;
+    }
+
+    /**
+     * Stops by stop ID from the last quotation, as Lalamove knows them.
+     *
+     * @var array<string, array>
+     */
+    protected array $quotedStops = [];
+
+    /**
+     * Lalamove's create order response for this order: each stop it was booked for, with the
+     * recipient it was given there (as the real API echoes back).
+     */
+    protected function orderResponse(array $order): array
+    {
+        $response = $this->fixture('create_order_response');
+        $response['data']['quotationId'] = $order['quotationId'];
+        $response['data']['stops'] = array_map(fn (array $person) => array_merge(
+            $this->quotedStops[$person['stopId']] ?? ['stopId' => $person['stopId']],
+            ['name' => $person['name'] ?? null, 'phone' => $person['phone'] ?? null],
+        ), array_merge([$order['sender']], $order['recipients']));
+
+        return $response;
+    }
+
+    /**
+     * Where a stored quotation's stops are, for orderResponse(), when it was not quoted in this test.
+     */
+    protected function rememberQuotedStops(LalamoveQuotation $quotation, array $stops): void
+    {
+        $this->quotedStops = [];
+
+        foreach (array_values($stops) as $i => $stop) {
+            $this->quotedStops[$quotation->stopIds[$i]] = ['stopId' => $quotation->stopIds[$i]] + $stop;
+        }
     }
 
     protected function freshQuotation(): LalamoveQuotation
@@ -435,9 +468,10 @@ class LalamoveTest extends TestCase
                     && $order['sender']['stopId'] === $quotation->stopIds[0]
                     && $order['recipients'][0]['stopId'] === $quotation->stopIds[1];
             })
-            ->andReturn($this->fixture('create_order_response'));
+            ->andReturnUsing(fn (array $order) => $this->orderResponse($order));
 
         $attributes = $this->makeOrder('13993-000')->toConsignmentableArray('lalamove');
+        $this->rememberQuotedStops($quotation, $attributes['stops']);
         $orderId = (new LalamoveDriver($mockClient))->createConsignment($attributes + ['quotation' => $quotation]);
 
         $this->assertSame('3487384979687051627', $orderId);
@@ -451,9 +485,10 @@ class LalamoveTest extends TestCase
         $mockClient->shouldNotReceive('createQuotation');
         $mockClient->shouldReceive('createOrder')->once()
             ->withArgs(fn (array $order) => $order['quotationId'] === $quotation->id)
-            ->andReturn($this->fixture('create_order_response'));
+            ->andReturnUsing(fn (array $order) => $this->orderResponse($order));
 
         $attributes = $this->makeOrder('13993-000')->toConsignmentableArray('lalamove');
+        $this->rememberQuotedStops($quotation, $attributes['stops']);
         $orderId = (new LalamoveDriver($mockClient))->createConsignment($attributes + ['quotation' => $quotation->toArray()]);
 
         $this->assertSame('3487384979687051627', $orderId);
@@ -527,7 +562,7 @@ class LalamoveTest extends TestCase
     {
         $mockClient = m::mock(Lalamove::class);
         $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
-        $mockClient->shouldReceive('createOrder')->once()->andReturn($this->fixture('create_order_response'));
+        $mockClient->shouldReceive('createOrder')->once()->andReturnUsing(fn (array $order) => $this->orderResponse($order));
 
         $consignment = (new LalamoveDriver($mockClient))
             ->createConsignmentWithSlip($this->makeOrder('13993-000')->toConsignmentableArray('lalamove'));
@@ -608,7 +643,7 @@ class LalamoveTest extends TestCase
                     && $stopIdFor['Order NEAR'] === 'STOP-2'
                     && $stopIdFor['Order MIDDLE'] === 'STOP-3';
             })
-            ->andReturn($this->fixture('create_order_response'));
+            ->andReturnUsing(fn (array $order) => $this->orderResponse($order));
 
         $orderId = (new LalamoveDriver($mockClient))->createConsignment($this->multiDropAttributes());
 
@@ -672,7 +707,7 @@ class LalamoveTest extends TestCase
     {
         $mockClient = m::mock(Lalamove::class);
         $mockClient->shouldReceive('createQuotation')->once()->andReturnUsing(fn (array $payload) => $this->quotationFor($payload));
-        $mockClient->shouldReceive('createOrder')->once()->andReturn($this->fixture('create_order_response'));
+        $mockClient->shouldReceive('createOrder')->once()->andReturnUsing(fn (array $order) => $this->orderResponse($order));
 
         $consignment = (new LalamoveDriver($mockClient))->createConsignmentWithSlip($this->makeOrder('13993-000')->toConsignmentableArray('lalamove'));
 
