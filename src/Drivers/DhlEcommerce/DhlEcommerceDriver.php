@@ -14,8 +14,9 @@ use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Messages\RedirectResponseInterface;
 use Nextbyte\Courier\ProofOfDelivery;
 use Nextbyte\Courier\Shipment;
+use Nextbyte\Courier\Contracts\Cancellable;
 
-class DhlEcommerceDriver extends Driver
+class DhlEcommerceDriver extends Driver implements Cancellable
 {
     /**
      * The DHL Ecommerce client.
@@ -550,5 +551,39 @@ class DhlEcommerceDriver extends Driver
     protected function getTrackingMyCourierName()
     {
         return 'dhl-ecommerce';
+    }
+
+    /**
+     * Cancel (domestic) or delete (international) a shipment.
+     *
+     * DHL only allows this before it picks the shipment up (domestic) or before close-out
+     * (international).
+     *
+     * @param string $consignmentNumber the shipmentID the label was created with, not its tracking number
+     */
+    public function cancelConsignment(string $consignmentNumber): bool
+    {
+        try {
+            $this->cancelConsignmentOrFail($consignmentNumber);
+
+            return true;
+        } catch (CourierException $exception) {
+            return false;
+        }
+    }
+
+    /**
+     * Like cancelConsignment(), but throws with DHL's reason when it refuses.
+     *
+     * @param string $consignmentNumber the shipmentID the label was created with, not its tracking number
+     * @throws CourierException
+     */
+    public function cancelConsignmentOrFail(string $consignmentNumber): void
+    {
+        $response = $this->client->deleteShipment([$consignmentNumber]);
+
+        if (!$response->isSuccess()) {
+            throw new CourierException("DHL could not cancel shipment {$consignmentNumber}: {$response->getFailureMessage()}");
+        }
     }
 }

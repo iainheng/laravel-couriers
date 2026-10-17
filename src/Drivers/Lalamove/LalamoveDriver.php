@@ -7,6 +7,7 @@ use Illuminate\Support\Arr;
 use Nextbyte\Courier\Clients\Lalamove\Lalamove;
 use Nextbyte\Courier\Consignment;
 use Nextbyte\Courier\ConsignmentFile;
+use Nextbyte\Courier\Contracts\Cancellable;
 use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Contracts\Quotable;
 use Nextbyte\Courier\Drivers\Driver;
@@ -16,7 +17,7 @@ use Nextbyte\Courier\Price;
 use Nextbyte\Courier\Shipment;
 use Nextbyte\Courier\ShipmentStatusPush;
 
-class LalamoveDriver extends Driver implements Quotable
+class LalamoveDriver extends Driver implements Cancellable, Quotable
 {
     /**
      * @var Lalamove

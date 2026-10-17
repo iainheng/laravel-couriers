@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Log;
 use Nextbyte\Courier\Clients\DhlEcommerce\Responses\AccessTokenApiResponse;
 use Nextbyte\Courier\Clients\DhlEcommerce\Responses\DhlEcommerceResponse;
+use Nextbyte\Courier\Clients\DhlEcommerce\Responses\DeleteShipmentResponse;
 use Nextbyte\Courier\Clients\DhlEcommerce\Responses\LabelReprintResponse;
 use Nextbyte\Courier\Clients\DhlEcommerce\Responses\LabelResponse;
 use Nextbyte\Courier\Clients\DhlEcommerce\Responses\TrackingItemResponse;
@@ -23,6 +24,7 @@ class DhlEcommerce
     const ENDPOINT_LABEL = 'LABEL';
     const ENDPOINT_LABEL_REPRINT = 'LABELREPRINT';
     const ENDPOINT_TRACK_ITEM = 'TRACKITEM';
+    const ENDPOINT_DELETE_SHIPMENT = 'DELETESHIPMENT';
 
     /**
      * @var \GuzzleHttp\ClientInterface
@@ -235,6 +237,27 @@ class DhlEcommerce
     public function createConsignmentWithSlip(array $payload)
     {
         return $this->createConsignment($payload);
+    }
+
+    /**
+     * Delete (international, before close-out) or cancel (domestic, before DHL picks it up)
+     * shipments by the shipmentID they were labelled with. Up to 100 per request.
+     *
+     * @param string[] $shipmentIds
+     * @return DeleteShipmentResponse
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
+    public function deleteShipment(array $shipmentIds): DeleteShipmentResponse
+    {
+        $url = $this->getBaseUrl() . '/rest/v2/Label/Delete';
+
+        $payload = [
+            'bd' => [
+                'shipmentItems' => array_map(fn ($shipmentId) => ['shipmentID' => $shipmentId], array_values($shipmentIds)),
+            ],
+        ];
+
+        return new DeleteShipmentResponse($this->request($url, self::ENDPOINT_DELETE_SHIPMENT, 'deleteShipmentReq', $payload));
     }
 
     /**

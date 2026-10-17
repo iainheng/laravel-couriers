@@ -102,3 +102,10 @@ LALAMOVE_ORDER_NUMBER_KEY=referenceId
 - `LalamoveDriver::cancelConsignmentOrFail($orderId)` cancels and throws `CourierException` with Lalamove's reason; `cancelConsignment()` keeps returning `false` instead.
 - Sandbox, 17 Oct 2026: cancelling while `ASSIGNING_DRIVER` works; cancelling again answers `ERR_CANCELLATION: Cannot cancel order.` Lalamove's docs allow cancelling up to about 5 minutes after a driver is matched.
 - Edit Order (`PATCH /v3/orders/{id}`) answered `ERR_ORDER_EDIT: Cannot edit order` for every edit tried (removing a drop-off, or only changing a remark) on a fresh order. It appears to need enabling for the account, so removing a single stop is not supported.
+
+## Cancelling with any courier (`Contracts\Cancellable`)
+
+- Drivers whose courier API can cancel a booking implement `Nextbyte\Courier\Contracts\Cancellable` (`cancelConsignmentOrFail(string $reference): void`, throwing `CourierException` with the courier's reason). Check `$driver instanceof Cancellable` first; other drivers keep throwing from `cancelConsignment()`.
+- **Lalamove** cancels by its orderId (the consignment/tracking number).
+- **DHL eCommerce** cancels by the **shipmentID** the label was created with, not its tracking number (`deliveryConfirmationNo`): `DhlEcommerce::deleteShipment()` calls `POST /rest/v2/Label/Delete` (`deleteShipmentReq`, messageType `DELETESHIPMENT`). DHL allows it for domestic shipments before pick-up/processing, and for international ones before close-out ([docs](https://api.dhlecommerce.dhl.com/API/docs/v2/deleteshipment.html)).
+- Not yet verified against DHL: its test environment (`apitest.dhlecommerce.asia`) answered 502 for every request on 17 Oct 2026, so `DeleteShipmentResponse` follows the documented field tables. Also unverified: whether a deleted shipmentID can be labelled again (DHL rejects re-used IDs when creating labels).
