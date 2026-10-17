@@ -140,6 +140,16 @@ class Lalamove
     }
 
     /**
+     * Get the market's cities with the service types (vehicles) each offers and their limits.
+     *
+     * @return array
+     */
+    public function getCities(): array
+    {
+        return $this->request('GET', '/v3/cities');
+    }
+
+    /**
      * Register or update the webhook URL for order status push notifications.
      *
      * @param string $url
