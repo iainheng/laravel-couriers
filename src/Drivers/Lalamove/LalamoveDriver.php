@@ -230,7 +230,109 @@ class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes
             throw new CourierException(data_get($response, 'message', 'Unknown Lalamove create order error.'));
         }
 
+        $this->verifyRecipients($attributes, $response);
+
         return $response;
+    }
+
+    /**
+     * Check Lalamove put each recipient at the address they were booked for. If not, cancel the order
+     * and refuse it: a hamper, name and phone at the wrong door must never go out.
+     *
+     * Reads the stops from the create order response, or from the order when the response has none.
+     * When neither says who is at each stop, the booking stands and a warning is logged.
+     *
+     * @throws CourierException naming the mix-up, and whether the order could be cancelled
+     */
+    protected function verifyRecipients(array $attributes, array $response): void
+    {
+        $orderId = (string) data_get($response, 'data.orderId');
+        $booked = $this->bookedStops($orderId, $response);
+
+        if ($booked === null) {
+            logger()->warning('Lalamove order could not be checked: no recipients on its stops', ['orderId' => $orderId]);
+
+            return;
+        }
+
+        $stops = array_values(data_get($attributes, 'stops', []));
+        $mixUps = [];
+
+        foreach (data_get($attributes, 'recipients', []) as $recipient) {
+            $name = $this->normaliseName(data_get($recipient, 'name'));
+            $intended = $stops[data_get($recipient, 'stopIndex', 1)] ?? null;
+
+            if ($name === '' || !$intended) {
+                continue;
+            }
+
+            $atStops = array_filter($booked, fn (array $stop) => $this->isSameName($name, $this->normaliseName(data_get($stop, 'name'))));
+
+            if (!$atStops) {
+                $mixUps[] = trim((string) data_get($recipient, 'name')) . ' is on no stop';
+            } elseif (!array_filter($atStops, fn (array $stop) => LalamoveQuotation::isSameStop($intended, $stop))) {
+                $mixUps[] = trim((string) data_get($recipient, 'name')) . ' is at ' . trim((string) data_get(reset($atStops), 'address')) . ' instead of ' . trim((string) data_get($intended, 'address'));
+            }
+        }
+
+        if (!$mixUps) {
+            return;
+        }
+
+        $problem = 'Lalamove put recipients at the wrong addresses: ' . implode('; ', $mixUps) . '.';
+
+        logger()->error('Lalamove order recipients mixed up', ['orderId' => $orderId, 'mixUps' => $mixUps]);
+
+        try {
+            $this->client->cancelOrderOrFail($orderId);
+        } catch (\Throwable $e) {
+            throw new CourierException("{$problem} Lalamove order {$orderId} could NOT be cancelled ({$e->getMessage()}): cancel it in Lalamove now, before a driver accepts it.", 0, $e);
+        }
+
+        throw new CourierException("{$problem} Lalamove order {$orderId} was cancelled, so nothing was booked. Try again; if it happens again, book these deliveries one by one.");
+    }
+
+    /**
+     * Who Lalamove has at each stop: from the create order response, else from the order itself.
+     *
+     * @return array[]|null null when Lalamove did not say
+     */
+    protected function bookedStops(string $orderId, array $response): ?array
+    {
+        $hasRecipients = fn ($stops) => is_array($stops) && $stops && array_filter($stops, fn ($stop) => trim((string) data_get($stop, 'name')) !== '');
+
+        if ($hasRecipients($stops = data_get($response, 'data.stops'))) {
+            return array_values($stops);
+        }
+
+        try {
+            $stops = data_get($this->client->getOrder($orderId), 'data.stops');
+        } catch (\Throwable $e) {
+            return null;
+        }
+
+        return $hasRecipients($stops) ? array_values($stops) : null;
+    }
+
+    /**
+     * A name reduced to lowercase letters and digits, so case, spacing and punctuation don't matter.
+     */
+    private function normaliseName($name): string
+    {
+        return preg_replace('/[^a-z0-9]/', '', strtolower((string) $name));
+    }
+
+    /**
+     * Whether two normalised names are the same person: equal, or one cut short by Lalamove.
+     */
+    private function isSameName(string $sent, string $booked): bool
+    {
+        if ($sent === '' || $booked === '') {
+            return false;
+        }
+
+        return $sent === $booked
+            || (min(strlen($sent), strlen($booked)) >= 8 && (str_starts_with($sent, $booked) || str_starts_with($booked, $sent)));
     }
 
     /**

@@ -163,4 +163,119 @@ class LalamoveQuoteStopOrderTest extends TestCase
 
         $this->assertSame($old, $old->forStops([self::WAREHOUSE, self::KENYALANG]));
     }
+
+    /**
+     * Every order the stops could be quoted in, every order they could be booked in, and several ways
+     * Lalamove could route them: each recipient must land on the stop at their own address.
+     */
+    public function test_every_quote_order_and_booking_order_puts_each_recipient_at_their_own_address()
+    {
+        $dropOffs = [self::KENYALANG, self::ASIA_SKYWAY, self::SUNGAI_BULOH, ['coordinates' => ['lat' => '2.92138', 'lng' => '101.65592'], 'address' => 'Casa View, Cybersouth']];
+        $routes = [
+            'by latitude' => fn (array $stops) => collect($stops)->sortBy(fn (array $stop) => (float) $stop['coordinates']['lat'])->keys()->all(),
+            'reversed' => fn (array $stops) => array_reverse(array_keys($stops)),
+            'as sent' => fn (array $stops) => array_keys($stops),
+        ];
+        $orders = $this->permutations(array_keys($dropOffs));
+        $bookings = 0;
+
+        foreach ($routes as $routeName => $route) {
+            foreach ($orders as $quoteOrder) {
+                foreach ($orders as $bookingOrder) {
+                    $quoteStops = array_merge([self::WAREHOUSE], array_map(fn (int $i) => $dropOffs[$i], $quoteOrder));
+                    $bookingStops = array_merge([self::WAREHOUSE], array_map(fn (int $i) => $dropOffs[$i], $bookingOrder));
+                    [$response, $addressOf] = $this->lalamoveQuotes($quoteStops, $route);
+
+                    $sent = $this->book($bookingStops, LalamoveQuotation::fromResponse($response, $quoteStops));
+
+                    $this->assertSame(self::WAREHOUSE['address'], $addressOf[$sent['sender']['stopId']], 'The sender must be at the warehouse.');
+
+                    foreach ($sent['recipients'] as $recipient) {
+                        $this->assertSame(
+                            $recipient['name'],
+                            $addressOf[$recipient['stopId']],
+                            "Route {$routeName}, quoted as ".implode(',', $quoteOrder).', booked as '.implode(',', $bookingOrder).": {$recipient['name']} was sent to {$addressOf[$recipient['stopId']]}.",
+                        );
+                    }
+
+                    $bookings++;
+                }
+            }
+        }
+
+        $this->assertSame(3 * 24 * 24, $bookings);
+    }
+
+    /**
+     * Lalamove's quotation response for these stops: drop-offs in the route's driving order, each with
+     * a fresh stop ID, coordinates rounded to 7 decimal places.
+     *
+     * @return array{0: array, 1: array<string, string>} the response, and each stop ID's address
+     */
+    private function lalamoveQuotes(array $stops, callable $route): array
+    {
+        static $nextId = 1000;
+
+        $driving = array_merge([$stops[0]], array_map(fn (int $i) => $stops[$i + 1], $route(array_slice($stops, 1))));
+        $responseStops = [];
+
+        foreach ($driving as $stop) {
+            $responseStops[] = [
+                'stopId' => (string) $nextId++,
+                'coordinates' => ['lat' => sprintf('%.7f', $stop['coordinates']['lat']), 'lng' => sprintf('%.7f', $stop['coordinates']['lng'])],
+                'address' => $stop['address'],
+            ];
+        }
+
+        return [
+            ['data' => ['quotationId' => 'QUO-' . $nextId, 'expiresAt' => Carbon::now()->addMinutes(5)->toIso8601String(), 'stops' => $responseStops]],
+            array_column($responseStops, 'address', 'stopId'),
+        ];
+    }
+
+    /**
+     * Book the stops through the driver with the quotation, naming each recipient after their address.
+     *
+     * @return array what the driver sent to Lalamove's create order endpoint
+     */
+    private function book(array $stops, LalamoveQuotation $quotation): array
+    {
+        $sent = null;
+        $client = m::mock(Lalamove::class);
+        $client->shouldReceive('config')->andReturnSelf();
+        $client->shouldReceive('createOrder')->once()->andReturnUsing(function (array $attributes) use (&$sent) {
+            $sent = $attributes;
+
+            return ['data' => ['orderId' => 'ORDER-1']];
+        });
+
+        (new LalamoveDriver($client))->createConsignment([
+            'stops' => $stops,
+            'sender' => ['stopIndex' => 0, 'name' => 'Warehouse', 'phone' => '+60129499667'],
+            'recipients' => array_map(fn (int $i) => ['stopIndex' => $i, 'name' => $stops[$i]['address'], 'phone' => '+6012000000' . $i], range(1, count($stops) - 1)),
+            'quotation' => $quotation->toArray(),
+        ]);
+
+        return $sent;
+    }
+
+    private function permutations(array $items): array
+    {
+        if (count($items) <= 1) {
+            return [$items];
+        }
+
+        $result = [];
+
+        foreach ($items as $i => $item) {
+            $rest = $items;
+            unset($rest[$i]);
+
+            foreach ($this->permutations(array_values($rest)) as $permutation) {
+                $result[] = array_merge([$item], $permutation);
+            }
+        }
+
+        return $result;
+    }
 }
