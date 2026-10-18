@@ -31,6 +31,8 @@ class GdexTest extends TestCase
 
     public function test_it_can_create_consignment()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -46,6 +48,8 @@ class GdexTest extends TestCase
 
     public function test_it_can_create_consignment_and_get_consignment_image()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -67,6 +71,8 @@ class GdexTest extends TestCase
 
     public function test_it_can_get_consignment_slip_using_consignmentable()
     {
+        $this->requireLiveApi();
+
         $faker = \Faker\Factory::create('ms_MY');
 
         $courier = $this->makeDriver($this->driverName);
@@ -89,6 +95,8 @@ class GdexTest extends TestCase
 
     public function test_it_can_get_consignment_shipments_details()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $consignment = $courier->consignment('MY98000781824');
@@ -99,6 +107,8 @@ class GdexTest extends TestCase
 
     public function test_it_can_get_last_shipment_status()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $shipments = $courier->getConsignmentsLastShipment([
@@ -111,5 +121,13 @@ class GdexTest extends TestCase
         $shipment = $shipments->get('MY98000781824');
 
         $this->assertEquals(ShipmentStatus::Delivered, $shipment->getStatus());
+    }
+
+    /**
+     * This test calls the live gdex API.
+     */
+    protected function requireLiveApi(): void
+    {
+        $this->requireLiveCredentials('gdex', ['api_token' => 'GDEX_API_TOKEN', 'subscription_key' => 'GDEX_SUBSCRIPTION_KEY', 'account_no' => 'GDEX_ACCOUNT_NO']);
     }
 }

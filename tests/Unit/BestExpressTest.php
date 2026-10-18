@@ -94,6 +94,8 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_create_consignment()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $consignment = $this->makeConsignmentRequestParams();
@@ -107,6 +109,8 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_create_consignment_and_get_consignment_image()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $attributes = $this->makeConsignmentRequestParams();
@@ -125,6 +129,8 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_get_consignment_slip_using_consignmentable()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $order = new BestExpressOrder('ORD-10002TEST', 'Jane Doe');
@@ -137,6 +143,8 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_get_multiple_consignment_slip_when_order_has_multiple_items()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $order = new BestExpressOrder('ORD-10003TEST', 'Jane Doe');
@@ -157,6 +165,8 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_push_update_order_shipment_status()
     {
+        $this->requireLiveApi();
+
         /**@var $courier BestExpressDriver */
         $courier = $this->makeDriver($this->driverName);
 
@@ -179,6 +189,8 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_push_update_order_shipment_status_with_raw_request()
     {
+        $this->requireLiveApi();
+
         /**@var $courier BestExpressDriver */
         $courier = $this->makeDriver($this->driverName);
 
@@ -201,11 +213,21 @@ class BestExpressTest extends TestCase
 
     public function test_it_can_get_consignment_shipments_details()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $consignment = $courier->consignment('60710185826000');
 
         $this->assertEquals(ShipmentStatus::Delivered, $consignment->status);
         $this->assertEquals('Port Klang', optional($consignment->shipments->first())->location);
+    }
+
+    /**
+     * This test calls the live best-express API.
+     */
+    protected function requireLiveApi(): void
+    {
+        $this->requireLiveCredentials('best-express', ['partner_id' => 'BESTEXPRESS_PARTNER_ID', 'partner_key' => 'BESTEXPRESS_PARTNER_KEY']);
     }
 }
