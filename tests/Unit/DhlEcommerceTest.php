@@ -53,6 +53,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_create_consignment()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         $orderNumber = 'ORD-' . now()->format('YmdHis') . 'TEST';
@@ -68,6 +70,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_create_consignment_and_get_consignment_image()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         $orderNumber = 'ORD-' . now()->format('YmdHis') . 'TEST';
@@ -92,6 +96,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_get_consignment_slip_using_consignmentable()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         $order = new DhlEcommerceOrder('ORD-10030TEST', 'Jane Doe');
@@ -106,6 +112,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_get_multiple_consignment_slip_when_order_has_multiple_items()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         $order = new DhlEcommerceOrder('MYLILORD-' . now()->format('YmdHis') . 'TEST', 'Jane Doe');
@@ -238,6 +246,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_reprint_consignment_slip()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         $order = new DhlEcommerceOrder('MYLILORD-10033TEST', 'Jane Doe');
@@ -254,6 +264,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_get_consignment_shipments_details()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
         // Create a fresh consignment so we have a tracking number that exists in the
@@ -325,6 +337,8 @@ class DhlEcommerceTest extends TestCase
 
     public function test_it_can_push_update_order_shipment_status()
     {
+        $this->requireLiveApi();
+
         /**@var $courier DhlEcommerceDriver */
         $courier = $this->makeDriver($this->driverName)->config($this->defaultConfig());
 
@@ -391,5 +405,13 @@ class DhlEcommerceTest extends TestCase
         dump($trackingNumbersArray);
         dump($orderItems);
         $this->assertStringContainsString(7228109013005524, data_get($orderItems, '0.consignment_number'));
+    }
+
+    /**
+     * This test calls the live dhl-ecommerce API.
+     */
+    protected function requireLiveApi(): void
+    {
+        $this->requireLiveCredentials('dhl-ecommerce', ['client_id' => 'DHL_ECOMMERCE_CLIENT_ID', 'password' => 'DHL_ECOMMERCE_PASSWORD', 'account_soldto' => 'DHL_ECOMMERCE_SOLDTO_ACCOUNT', 'account_pickup' => 'DHL_ECOMMERCE_PICKUP_ACCOUNT']);
     }
 }

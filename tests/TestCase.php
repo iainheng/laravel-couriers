@@ -45,6 +45,26 @@ abstract class TestCase extends OrchestraTestCase
     }
 
     /**
+     * Skip a test that calls the courier's live API when its credentials aren't in .env, so the
+     * suite runs clean without them. Copy .env.example to .env and fill them in to run these tests.
+     *
+     * @param string               $courier     the courier's section of config/courier.php, e.g. "lalamove"
+     * @param array<string,string> $credentials config key => .env variable, e.g. ['api_key' => 'LALAMOVE_API_KEY']
+     */
+    protected function requireLiveCredentials(string $courier, array $credentials): void
+    {
+        $missing = array_filter(
+            $credentials,
+            fn (string $variable, string $key) => trim((string) config("courier.{$courier}.{$key}")) === '',
+            ARRAY_FILTER_USE_BOTH,
+        );
+
+        if ($missing) {
+            $this->markTestSkipped("Calls the live {$courier} API: set " . implode(', ', $missing) . ' in .env to run it.');
+        }
+    }
+
+    /**
      * @param string $driver
      * @return \Nextbyte\Courier\Contracts\Courier
      */

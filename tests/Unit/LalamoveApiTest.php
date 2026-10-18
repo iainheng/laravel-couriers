@@ -73,6 +73,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_create_consignment()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -89,6 +91,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_create_consignment_with_slip()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -108,6 +112,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_create_consignment_with_special_requests()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $order = $this->makeOrder('ORD-LA-SPECIAL-001');
@@ -122,6 +128,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_get_consignment_details()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -149,6 +157,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_get_last_shipment_for_multiple_orders()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -170,6 +180,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_create_multi_stop_consignment()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $order = $this->makeMultiStopOrder($this->randomOrderNumber('ORD-LA-MULTI'));
@@ -189,6 +201,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_create_multi_stop_consignment_with_route_optimized()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $order = $this->makeMultiStopOrder($this->randomOrderNumber('ORD-LA-MULTI-OPT'));
@@ -239,6 +253,8 @@ class LalamoveApiTest extends TestCase
 
     public function test_it_can_cancel_consignment()
     {
+        $this->requireLiveApi();
+
         $courier = $this->makeDriver($this->driverName);
 
         $faker = \Faker\Factory::create('ms_MY');
@@ -250,5 +266,13 @@ class LalamoveApiTest extends TestCase
         $result = $courier->cancelConsignment($orderId);
 
         $this->assertTrue($result);
+    }
+
+    /**
+     * This test calls the live lalamove API.
+     */
+    protected function requireLiveApi(): void
+    {
+        $this->requireLiveCredentials('lalamove', ['api_key' => 'LALAMOVE_API_KEY', 'api_secret' => 'LALAMOVE_API_SECRET']);
     }
 }
