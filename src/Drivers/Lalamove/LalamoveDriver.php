@@ -10,17 +10,26 @@ use Nextbyte\Courier\ConsignmentFile;
 use Nextbyte\Courier\Contracts\Cancellable;
 use Nextbyte\Courier\Contracts\Consignmentable;
 use Nextbyte\Courier\Contracts\ProvidesServiceTypes;
+use Nextbyte\Courier\Contracts\ProvidesStopProofsOfDelivery;
 use Nextbyte\Courier\Contracts\Quotable;
 use Nextbyte\Courier\Drivers\Driver;
 use Nextbyte\Courier\Enums\ShipmentStatus;
 use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\Price;
+use Nextbyte\Courier\ProofOfDelivery;
 use Nextbyte\Courier\ServiceType;
 use Nextbyte\Courier\Shipment;
 use Nextbyte\Courier\ShipmentStatusPush;
 
-class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes, Quotable
+class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes, ProvidesStopProofsOfDelivery, Quotable
 {
+    /**
+     * POD statuses of a stop not delivered (yet). Any other status with a photo is a delivery:
+     * production reports a photo as DELIVERED and a signature as SIGNED, while the sandbox
+     * sends SIGNED for both.
+     */
+    protected const POD_NOT_DELIVERED = ['PENDING', 'FAILED'];
+
     /**
      * @var Lalamove
      */
@@ -404,6 +413,62 @@ class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes
     }
 
     /**
+     * The proof of delivery of a booking with one drop-off. A multi-stop booking has one per
+     * stop, so this returns null for it: use getProofsOfDelivery() and pick the stop.
+     *
+     * @inheritDoc
+     */
+    public function getProofOfDelivery($trackingNumber)
+    {
+        $stops = $this->dropOffStops($trackingNumber);
+
+        if (count($stops) !== 1 || ! $this->isDeliveredPod(data_get($stops[0], 'POD'))) {
+            return null;
+        }
+
+        return $this->proofOfDelivery($stops[0]);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getProofsOfDelivery(string $bookingId): array
+    {
+        return array_values(array_map(
+            fn (array $stop) => $this->proofOfDelivery($stop),
+            array_filter($this->dropOffStops($bookingId), fn (array $stop) => $this->isDeliveredPod(data_get($stop, 'POD')))
+        ));
+    }
+
+    /**
+     * The booking's drop-off stops, as Get Order Details returns them (the first stop is the pickup).
+     *
+     * @return array[]
+     */
+    protected function dropOffStops(string $bookingId): array
+    {
+        return array_values(array_slice(data_get($this->client->getOrder($bookingId), 'data.stops', []), 1));
+    }
+
+    /**
+     * Whether a stop's POD says it was delivered, with a photo.
+     */
+    protected function isDeliveredPod($pod): bool
+    {
+        return ! empty(data_get($pod, 'image')) && ! in_array(data_get($pod, 'status'), self::POD_NOT_DELIVERED, true);
+    }
+
+    protected function proofOfDelivery(array $stop): ProofOfDelivery
+    {
+        return ProofOfDelivery::create([
+            'recipientName' => data_get($stop, 'name'),
+            'imageUrl' => data_get($stop, 'POD.image'),
+            'deliveredAt' => data_get($stop, 'POD.deliveredAt'),
+            'raw' => $stop,
+        ]);
+    }
+
+    /**
      * Handle an incoming Lalamove webhook and invoke the callback with a ShipmentStatusPush.
      *
      * Supports three Lalamove event types, each with a different payload shape:
@@ -444,7 +509,7 @@ class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes
                     $podImageUrl = data_get($stop, 'POD.image');
                     $podStatus   = data_get($stop, 'POD.status');
 
-                    if (empty($podImageUrl) || $podStatus !== 'SIGNED') {
+                    if (! $this->isDeliveredPod(data_get($stop, 'POD'))) {
                         continue;
                     }
 

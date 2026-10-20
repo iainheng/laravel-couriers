@@ -1,0 +1,96 @@
+{
+    "data": {
+        "orderId": "3609685653014667595",
+        "quotationId": "3609685000000000000",
+        "driverId": "80039",
+        "status": "PICKED_UP",
+        "stops": [
+            {
+                "coordinates": {
+                    "lat": "3.0098200",
+                    "lng": "101.7559700"
+                },
+                "address": "No 9, Jalan Alfa Impian 1, Balakong, Selangor, 43300",
+                "name": "Empire Hamper & Gift Sdn Bhd",
+                "phone": "0129499667",
+                "deliveryCode": {
+                    "value": null,
+                    "status": "Not Applicable"
+                }
+            },
+            {
+                "coordinates": {
+                    "lat": "3.0449000",
+                    "lng": "101.4456000"
+                },
+                "address": "1, Jalan Mawar, Taman Raja Uda, Port Klang, Selangor, 42000",
+                "name": "SITI AMINAH",
+                "phone": "+60120000001",
+                "POD": {
+                    "status": "DELIVERED",
+                    "image": "http://sg-oimg.lalamove.com/appdriver/prd/2026-10-20/stop-1.jpeg",
+                    "deliveredAt": "2026-10-20T13:40.00Z"
+                },
+                "deliveryCode": {
+                    "value": null,
+                    "status": "Not Applicable"
+                }
+            },
+            {
+                "coordinates": {
+                    "lat": "3.1390000",
+                    "lng": "101.6869000"
+                },
+                "address": "2, Jalan Ampang, Kuala Lumpur, 50450",
+                "name": "Mr Lim (Managing Director)",
+                "phone": "+60120000002",
+                "POD": {
+                    "status": "PENDING"
+                },
+                "deliveryCode": {
+                    "value": null,
+                    "status": "Not Applicable"
+                }
+            },
+            {
+                "coordinates": {
+                    "lat": "3.0738000",
+                    "lng": "101.7397000"
+                },
+                "address": "3, Jalan Cheras, Cheras, Kuala Lumpur, 56100",
+                "name": "KUMAR A/L RAJU",
+                "phone": "+60120000003",
+                "POD": {
+                    "status": "SIGNED",
+                    "image": "http://sg-oimg.lalamove.com/appdriver/prd/2026-10-20/stop-3.jpeg",
+                    "deliveredAt": "2026-10-20T14:05.00Z"
+                },
+                "deliveryCode": {
+                    "value": null,
+                    "status": "Not Applicable"
+                }
+            },
+            {
+                "coordinates": {
+                    "lat": "3.0233000",
+                    "lng": "101.7019000"
+                },
+                "address": "4, Jalan Universiti, Seri Kembangan, Selangor, 43300",
+                "name": "TAN AH KOW",
+                "phone": "+60120000004",
+                "POD": {
+                    "status": "FAILED",
+                    "image": "http://sg-oimg.lalamove.com/appdriver/prd/2026-10-20/stop-4.jpeg"
+                },
+                "deliveryCode": {
+                    "value": null,
+                    "status": "Not Applicable"
+                }
+            }
+        ],
+        "metadata": {
+            "referenceId": "14008-014, 14008-050, 14021-004, 14021-005"
+        },
+        "remarks": []
+    }
+}
