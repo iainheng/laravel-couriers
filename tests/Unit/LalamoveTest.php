@@ -348,6 +348,63 @@ class LalamoveTest extends TestCase
         $this->assertEmpty($consignment->slips);
     }
 
+    /**
+     * Production reports a delivery photo's POD as DELIVERED (the sandbox sends SIGNED), so a POD
+     * counts when it has a photo and isn't PENDING or FAILED.
+     */
+    public function test_a_pod_webhook_counts_every_delivered_stop_with_a_photo()
+    {
+        $courier = $this->makeDriver($this->driverName);
+        $pushes = [];
+
+        $response = $courier->pushShipmentStatus(function (ShipmentStatusPush $push) use (&$pushes) {
+            $pushes[] = $push;
+        }, $this->fixture('webhooks/pod_status_changed_production'));
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertSame(['SITI AMINAH', 'KUMAR A/L RAJU'], array_map(fn (ShipmentStatusPush $push) => $push->getRecipientName(), $pushes));
+        $this->assertSame('http://sg-oimg.lalamove.com/appdriver/prd/2026-10-20/stop-1.jpeg', $pushes[0]->getPodImageUrl());
+        $this->assertSame(ShipmentStatus::Delivered, $pushes[0]->getStatus());
+        $this->assertSame('3609685653014667595', $pushes[0]->getConsignmentNumber());
+    }
+
+    public function test_the_proofs_of_delivery_of_a_multi_stop_booking_are_fetched_per_stop()
+    {
+        $client = m::mock(Lalamove::class);
+        $client->shouldReceive('getOrder')->with('3609685653014667595')->andReturn($this->fixture('order_details_pods'));
+        $driver = new LalamoveDriver($client);
+
+        $this->assertInstanceOf(\Nextbyte\Courier\Contracts\ProvidesStopProofsOfDelivery::class, $driver);
+
+        $pods = $driver->getProofsOfDelivery('3609685653014667595');
+
+        $this->assertSame(['SITI AMINAH', 'KUMAR A/L RAJU'], array_map(fn ($pod) => $pod->recipientName, $pods), 'Pending and failed stops are left out.');
+        $this->assertSame('http://sg-oimg.lalamove.com/appdriver/prd/2026-10-20/stop-3.jpeg', $pods[1]->imageUrl);
+        $this->assertSame('+60120000003', data_get($pods[1]->raw, 'phone'));
+        $this->assertSame('3.0738000', data_get($pods[1]->raw, 'coordinates.lat'));
+        $this->assertSame('2026-10-20 14:05:00', $pods[1]->deliveredAt->format('Y-m-d H:i:s'));
+
+        $this->assertNull($driver->getProofOfDelivery('3609685653014667595'), 'A multi-stop booking has no single proof of delivery.');
+    }
+
+    public function test_the_proof_of_delivery_of_a_one_stop_booking()
+    {
+        $order = $this->fixture('order_details_pods');
+        $order['data']['stops'] = array_slice($order['data']['stops'], 0, 2);
+        $client = m::mock(Lalamove::class);
+        $client->shouldReceive('getOrder')->andReturn($order);
+
+        $pod = (new LalamoveDriver($client))->getProofOfDelivery('3609685653014667595');
+
+        $this->assertSame('SITI AMINAH', $pod->recipientName);
+        $this->assertTrue($pod->hasImage());
+
+        $order['data']['stops'][1]['POD'] = ['status' => 'PENDING'];
+        $pending = m::mock(Lalamove::class);
+        $pending->shouldReceive('getOrder')->andReturn($order);
+        $this->assertNull((new LalamoveDriver($pending))->getProofOfDelivery('3609685653014667595'), 'Not delivered yet: the caller tries again later.');
+    }
+
     protected function fixture(string $name): array
     {
         return json_decode(file_get_contents(__DIR__ . '/../Fixtures/data/lalamove/' . $name . '.json'), true);
