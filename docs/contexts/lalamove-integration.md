@@ -133,6 +133,16 @@ Kuala Lumpur (sandbox, Oct 2026): MOTORCYCLE 10 kg 30×30×30 cm · CAR 40 kg 50
 The list changes by city and over time, so fetch it rather than hard-coding it; it rarely changes,
 so cache it (a day is plenty).
 
+Each `ServiceType` also lists its **`specialRequests`** (`SpecialRequest`: `key`, `description`,
+`group`, `maxSelection`, `option()`), e.g. door-to-door delivery. Send the chosen keys as
+`specialRequests` with `quote()` and the booking; the price includes them (sandbox, KUL car:
+`DOOR_TO_DOOR` +RM 4, `DOOR_TO_DOOR_1DRIVER` +RM 5). A key the vehicle doesn't offer is refused
+(`ERR_INVALID_FIELD`). Kuala Lumpur (sandbox, Oct 2026): MOTORCYCLE has no door-to-door; CAR and
+4X4 have `DOOR_TO_DOOR` and `DOOR_TO_DOOR_1DRIVER`; VAN and the trucks group theirs under
+"Door-to-Door Service" (`DOOR_TO_DOOR_2`/`_3`/`_4`, by driver, + 1 or 2 helpers) and "How many
+people do you need?" (`DOOR_TO_DOOR_1DRIVER`, `…1HELPER`, `…2HELPER`), one from each group.
+Lalamove's descriptions arrive with "+" turned into spaces; `SpecialRequest` puts it back.
+
 ## Each recipient at their own address
 
 Lalamove's stop IDs belong to addresses. `LalamoveQuotation` keeps the stops it was quoted for, and

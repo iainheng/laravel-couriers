@@ -3,7 +3,8 @@
 namespace Nextbyte\Courier;
 
 /**
- * A vehicle or service a courier offers, with the largest load it takes.
+ * A vehicle or service a courier offers, with the largest load it takes and the extras
+ * (special requests) offered with it.
  *
  * Limits are normalised to kilograms and centimetres, and are null when the courier gives none.
  */
@@ -16,6 +17,7 @@ class ServiceType
      * @param float|null $lengthCm    Largest item length, e.g. 50.0
      * @param float|null $widthCm     Largest item width
      * @param float|null $heightCm    Largest item height
+     * @param SpecialRequest[] $specialRequests Extras offered with it, e.g. door-to-door delivery
      */
     public function __construct(
         public readonly string $key,
@@ -24,6 +26,7 @@ class ServiceType
         public readonly ?float $lengthCm = null,
         public readonly ?float $widthCm = null,
         public readonly ?float $heightCm = null,
+        public readonly array $specialRequests = [],
     ) {
     }
 
@@ -42,6 +45,7 @@ class ServiceType
             self::toCentimetres($service['dimensions']['length'] ?? null),
             self::toCentimetres($service['dimensions']['width'] ?? null),
             self::toCentimetres($service['dimensions']['height'] ?? null),
+            array_map(fn (array $request) => SpecialRequest::fromLalamove($request), $service['specialRequests'] ?? []),
         );
     }
 
@@ -54,11 +58,27 @@ class ServiceType
             $attributes['lengthCm'] ?? null,
             $attributes['widthCm'] ?? null,
             $attributes['heightCm'] ?? null,
+            // Absent from arrays cached before special requests were kept.
+            array_map(fn (array $request) => SpecialRequest::fromArray($request), $attributes['specialRequests'] ?? []),
         );
     }
 
     /**
-     * @return array{key: string, description: string, maxWeightKg: float|null, lengthCm: float|null, widthCm: float|null, heightCm: float|null}
+     * The special request with this key, if offered.
+     */
+    public function specialRequest(string $key): ?SpecialRequest
+    {
+        foreach ($this->specialRequests as $request) {
+            if ($request->key === $key) {
+                return $request;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @return array{key: string, description: string, maxWeightKg: float|null, lengthCm: float|null, widthCm: float|null, heightCm: float|null, specialRequests: array<int, array{key: string, description: string, group: string|null, maxSelection: int}>}
      */
     public function toArray(): array
     {
@@ -69,6 +89,7 @@ class ServiceType
             'lengthCm' => $this->lengthCm,
             'widthCm' => $this->widthCm,
             'heightCm' => $this->heightCm,
+            'specialRequests' => array_map(fn (SpecialRequest $request) => $request->toArray(), $this->specialRequests),
         ];
     }
 

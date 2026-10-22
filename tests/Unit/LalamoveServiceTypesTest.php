@@ -8,6 +8,7 @@ use Nextbyte\Courier\Contracts\ProvidesServiceTypes;
 use Nextbyte\Courier\Drivers\Lalamove\LalamoveDriver;
 use Nextbyte\Courier\Exceptions\CourierException;
 use Nextbyte\Courier\ServiceType;
+use Nextbyte\Courier\SpecialRequest;
 use Nextbyte\Tests\Courier\TestCase;
 
 class LalamoveServiceTypesTest extends TestCase
@@ -47,6 +48,29 @@ class LalamoveServiceTypesTest extends TestCase
         $this->assertSame(40.0, $car->maxWeightKg);
         $this->assertSame([50.0, 50.0, 50.0], [$car->lengthCm, $car->widthCm, $car->heightCm]);
         $this->assertSame([170.0, 100.0, 120.0], [$types[3]->lengthCm, $types[3]->widthCm, $types[3]->heightCm]);
+    }
+
+    public function test_each_vehicle_lists_its_special_requests()
+    {
+        [$motorcycle, $car, , $van] = $this->driver(['city' => 'KUL'])->serviceTypes();
+
+        $this->assertSame([], $motorcycle->specialRequests);
+        $this->assertSame(['ROUND_TRIP', 'DOOR_TO_DOOR', 'DOOR_TO_DOOR_1DRIVER'], array_map(fn (SpecialRequest $request) => $request->key, $car->specialRequests));
+        $this->assertSame('Door-to-door (loading & unloading by driver)', $car->specialRequest('DOOR_TO_DOOR_1DRIVER')->option());
+        $this->assertNull($car->specialRequest('DOOR_TO_DOOR')->group);
+        $this->assertNull($car->specialRequest('DOOR_TO_DOOR_3'));
+
+        $helper = $van->specialRequest('DOOR_TO_DOOR_3');
+        $this->assertSame('Door-to-Door Service · by Driver + 1 Helper', $helper->description, "Lalamove's lost \"+\" is put back.");
+        $this->assertSame(['Door-to-Door Service', 'by Driver + 1 Helper', 1], [$helper->group, $helper->option(), $helper->maxSelection]);
+    }
+
+    public function test_special_requests_survive_being_cached_as_an_array()
+    {
+        $car = $this->driver(['city' => 'KUL'])->serviceTypes()[1];
+
+        $this->assertEquals($car, ServiceType::fromArray($car->toArray()));
+        $this->assertSame([], ServiceType::fromArray(['key' => 'CAR', 'description' => 'Car'])->specialRequests, 'An array cached before special requests were kept.');
     }
 
     public function test_the_city_can_be_given_with_or_without_the_market()
