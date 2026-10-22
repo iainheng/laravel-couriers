@@ -49,7 +49,29 @@
               "unit": "m"
             }
           },
-          "specialRequests": [],
+          "specialRequests": [
+            {
+              "name": "ROUND_TRIP",
+              "description": "Round trip",
+              "max_selection": 1,
+              "effective_time": "",
+              "offline_time": ""
+            },
+            {
+              "name": "DOOR_TO_DOOR",
+              "description": "Door-to-Door Service",
+              "max_selection": 1,
+              "effective_time": "",
+              "offline_time": ""
+            },
+            {
+              "name": "DOOR_TO_DOOR_1DRIVER",
+              "description": "Door-to-door (loading & unloading by driver)",
+              "max_selection": 1,
+              "effective_time": "",
+              "offline_time": ""
+            }
+          ],
           "deliveryItemSpecification": {}
         },
         {
@@ -97,7 +119,32 @@
               "unit": "m"
             }
           },
-          "specialRequests": [],
+          "specialRequests": [
+            {
+              "name": "DOOR_TO_DOOR_3",
+              "description": "Door-to-Door Service · by Driver   1 Helper",
+              "parent_type": "Door-to-Door Service",
+              "max_selection": 1,
+              "effective_time": "",
+              "offline_time": ""
+            },
+            {
+              "name": "DOOR_TO_DOOR_2",
+              "description": "Door-to-Door Service · by Driver",
+              "parent_type": "Door-to-Door Service",
+              "max_selection": 1,
+              "effective_time": "",
+              "offline_time": ""
+            },
+            {
+              "name": "DOOR_TO_DOOR_1DRIVER",
+              "description": "How many people do you need? · Driver only",
+              "parent_type": "How many people do you need?",
+              "max_selection": 1,
+              "effective_time": "",
+              "offline_time": ""
+            }
+          ],
           "deliveryItemSpecification": {}
         },
         {
