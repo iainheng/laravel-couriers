@@ -657,6 +657,16 @@ class LalamoveTest extends TestCase
         (new LalamoveDriver($mockClient))->cancelConsignmentOrFail('3607496166826754985');
     }
 
+    public function test_change_driver_passes_the_driver_and_reason_on()
+    {
+        $mockClient = m::mock(Lalamove::class);
+        $mockClient->shouldReceive('changeDriver')->once()->with('3614557210216210614', '4960890', 'DRIVER_UNRESPONSIVE');
+
+        (new LalamoveDriver($mockClient))->changeDriver('3614557210216210614', '4960890', 'DRIVER_UNRESPONSIVE');
+
+        $this->addToAssertionCount(1);
+    }
+
     public function test_cancelled_and_expired_statuses_describe_themselves()
     {
         $this->assertSame('Order was cancelled', ShipmentStatus::getDescription(ShipmentStatus::Cancelled));

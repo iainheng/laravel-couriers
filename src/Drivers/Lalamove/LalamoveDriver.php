@@ -610,6 +610,20 @@ class LalamoveDriver extends Driver implements Cancellable, ProvidesServiceTypes
     }
 
     /**
+     * Replace the order's driver, e.g. one who doesn't turn up: Lalamove finds another. Allowed
+     * once a driver has accepted and before pickup; otherwise Lalamove's reason is thrown.
+     *
+     * @param string $consignmentNumber Lalamove orderId
+     * @param string $driverId the assigned driver's driverId
+     * @param string $reason one of Lalamove::DRIVER_CHANGE_REASONS
+     * @throws CourierException
+     */
+    public function changeDriver(string $consignmentNumber, string $driverId, string $reason): void
+    {
+        $this->client->changeDriver($consignmentNumber, $driverId, $reason);
+    }
+
+    /**
      * Get the assigned driver's current location and details for an order.
      *
      * @param string $orderId

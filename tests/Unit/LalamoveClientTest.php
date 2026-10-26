@@ -142,6 +142,30 @@ class LalamoveClientTest extends TestCase
         $this->assertSame('/v3/orders/3607496166826754985', $request->getUri()->getPath());
     }
 
+    public function test_changing_the_driver_deletes_them_from_the_order_with_the_reason()
+    {
+        $client = $this->client();
+        $this->responses->append(new Response(204));
+
+        $client->changeDriver('3614557210216210614', '4960890', 'DRIVER_LATE');
+
+        $request = $this->responses->getLastRequest();
+        $this->assertSame('DELETE', $request->getMethod());
+        $this->assertSame('/v3/orders/3614557210216210614/drivers/4960890', $request->getUri()->getPath());
+        $this->assertSame('{"data":{"reason":"DRIVER_LATE"}}', (string) $request->getBody());
+        $this->assertStringStartsWith('hmac pk_test_key:', $request->getHeaderLine('Authorization'));
+    }
+
+    public function test_a_refused_driver_change_explains_why()
+    {
+        $client = $this->client();
+        $this->responses->append(new Response(422, [], '{"errors":[{"id":"ERR_INVALID_FIELD","message":"Driver cannot be changed."}]}'));
+
+        $exception = $this->catchCourierException(fn () => $client->changeDriver('3614557210216210614', '4960890', 'DRIVER_LATE'));
+
+        $this->assertSame('ERR_INVALID_FIELD: Driver cannot be changed.', $exception->getMessage());
+    }
+
     public function test_a_refused_cancellation_explains_why()
     {
         $client = $this->client();
