@@ -9,6 +9,11 @@ use Nextbyte\Courier\Exceptions\CourierException;
 class Lalamove
 {
     /**
+     * Why a driver is replaced (changeDriver()), as Lalamove names it.
+     */
+    public const DRIVER_CHANGE_REASONS = ['DRIVER_LATE', 'DRIVER_ASKED_CHANGE', 'DRIVER_UNRESPONSIVE', 'DRIVER_RUDE'];
+
+    /**
      * @var \GuzzleHttp\ClientInterface
      */
     protected $client;
@@ -125,6 +130,20 @@ class Lalamove
     public function cancelOrderOrFail(string $orderId): void
     {
         $this->request('DELETE', "/v3/orders/{$orderId}");
+    }
+
+    /**
+     * Replace the order's driver: Lalamove looks for another. Allowed once a driver has accepted,
+     * before the goods are picked up; when Lalamove refuses, its reason is thrown.
+     *
+     * @param string $orderId
+     * @param string $driverId the assigned driver's driverId
+     * @param string $reason one of DRIVER_CHANGE_REASONS
+     * @throws CourierException
+     */
+    public function changeDriver(string $orderId, string $driverId, string $reason): void
+    {
+        $this->request('DELETE', "/v3/orders/{$orderId}/drivers/{$driverId}", ['reason' => $reason]);
     }
 
     /**
